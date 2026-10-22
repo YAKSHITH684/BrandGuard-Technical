@@ -1,79 +1,81 @@
-# Deploying BrandGuard to Render
+# Deploying BrandGuard to Render (Static Site + Web Service)
 
-This repository includes a ready-to-use **Render Blueprint** ([`render.yaml`](file:///C:/Users/yaksh/.gemini/antigravity/scratch/brandguard/render.yaml)) that automatically configures:
-1. **`brandguard-api`**: FastAPI backend service (Python 3.12)
-2. **`brandguard-web`**: Next.js frontend service (Node 20)
-3. **`brandguard-db`**: PostgreSQL database with `pgvector` support
+Render allows you to deploy BrandGuard using two distinct service types for maximum performance and cost-efficiency:
+
+1. **`brandguard-web` (Static Site)**:
+   * **Type:** Render **Static Site**
+   * **Advantage:** 100% Free on Render, global CDN distribution, never sleeps or spins down, zero cold start latency.
+   * **Publish Path:** `./out` (Next.js statically exported HTML/CSS/JS)
+
+2. **`brandguard-api` (Web Service)**:
+   * **Type:** Render **Web Service**
+   * **Advantage:** Dedicated Python 3.12 runtime with Uvicorn, background workers, and pgvector support.
+   * **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+
+3. **`brandguard-db` (PostgreSQL Database)**:
+   * Render managed PostgreSQL database with `pgvector` extension enabled.
 
 ---
 
-## Method 1: Instant Blueprint Deployment (Recommended)
+## Option 1: 1-Click Blueprint (Recommended)
 
 1. **Push your code to GitHub**:
    ```bash
-   git init
    git add .
-   git commit -m "BrandGuard Initial Commit"
-   git branch -M main
-   git remote add origin https://github.com/<your-username>/brandguard.git
-   git push -u origin main
+   git commit -m "feat: configure static site and web service for Render"
+   git push origin main
    ```
 
-2. **Go to Render Dashboard**:
-   - Navigate to [https://dashboard.render.com](https://dashboard.render.com).
-   - Click **New +** in the top navigation and select **Blueprint**.
+2. **Open Render Blueprint Dashboard**:
+   - Visit [https://dashboard.render.com/blueprints/new](https://dashboard.render.com/blueprints/new).
+   - Select your repository: **`YAKSHITH684/BrandGuard-Technical`**.
 
-3. **Connect Repository**:
-   - Select your `brandguard` repository.
-   - Render will automatically parse `render.yaml` and display the 3 resources (`brandguard-api`, `brandguard-web`, and `brandguard-db`).
+3. **Render Automatically Discovers Both Services**:
+   - **`brandguard-api`** (Web Service): Python FastAPI backend.
+   - **`brandguard-web`** (Static Site): Next.js static frontend.
+   - **`brandguard-db`** (Postgres DB).
 
-4. **Set Environment Variables**:
-   - `GROQ_API_KEY`: Enter your free Groq API key from [https://console.groq.com](https://console.groq.com).
+4. **Add your `GROQ_API_KEY`**:
+   - Provide your free key from [console.groq.com](https://console.groq.com).
    - Click **Apply**.
 
-Render will build and provision all three services automatically!
+---
+
+## Option 2: Creating the Two Services Manually in Render Dashboard
+
+If you prefer setting up the two services manually in the Render UI:
+
+### Service 1: The Static Website (`brandguard-web`)
+1. Click **New +** → **Static Site**.
+2. Connect your repository: `YAKSHITH684/BrandGuard-Technical`.
+3. Fill in the configuration:
+   * **Name:** `brandguard-web`
+   * **Root Directory:** `frontend`
+   * **Build Command:** `npm install && npm run build`
+   * **Publish Directory:** `out`
+4. In **Environment Variables**, add:
+   * `NEXT_PUBLIC_API_URL`: `https://brandguard-api.onrender.com/api`
+5. In **Redirects/Rewrites**, add:
+   * **Type:** Rewrite
+   * **Source:** `/*`
+   * **Destination:** `/index.html`
+6. Click **Create Static Site**.
 
 ---
 
-## Method 2: Manual Service Creation
-
-If you prefer deploying services manually in the Render UI:
-
-### 1. PostgreSQL Database
-- **Type:** PostgreSQL
-- **Name:** `brandguard-db`
-- **Database:** `brandguard`
-- **User:** `brandguard_user`
-- **Region:** Any (e.g. Oregon / Frankfurt)
-- **Plan:** Free
-
-### 2. Backend Web Service
-- **Type:** Web Service
-- **Name:** `brandguard-api`
-- **Root Directory:** `backend`
-- **Environment:** Python 3
-- **Build Command:** `pip install -r requirements.txt`
-- **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-- **Environment Variables:**
-  - `DATABASE_URL`: *(Paste Internal Database URL from your Render PostgreSQL instance)*
-  - `GROQ_API_KEY`: *(Your Groq API key)*
-  - `JWT_SECRET`: *(Any secure random 32-character string)*
-  - `CONFIDENCE_THRESHOLD`: `0.65`
-  - `FRONTEND_URL`: `https://brandguard-web.onrender.com`
-
-### 3. Frontend Web Service
-- **Type:** Web Service
-- **Name:** `brandguard-web`
-- **Root Directory:** `frontend`
-- **Environment:** Node
-- **Build Command:** `npm install && npm run build`
-- **Start Command:** `npm run start -- -p $PORT`
-- **Environment Variables:**
-  - `NEXT_PUBLIC_API_URL`: `https://brandguard-api.onrender.com/api`
-
----
-
-## Verifying Deployment
-- Backend heartbeat: `https://brandguard-api.onrender.com/api/health`
-- Frontend UI: `https://brandguard-web.onrender.com`
-- Interactive Swagger docs: `https://brandguard-api.onrender.com/docs`
+### Service 2: The Web Service (`brandguard-api`)
+1. Click **New +** → **Web Service**.
+2. Connect your repository: `YAKSHITH684/BrandGuard-Technical`.
+3. Fill in the configuration:
+   * **Name:** `brandguard-api`
+   * **Root Directory:** `backend`
+   * **Runtime:** `Python 3`
+   * **Build Command:** `pip install -r requirements.txt`
+   * **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+4. In **Environment Variables**, add:
+   * `DATABASE_URL`: *(Internal Database URL from Render Postgres, or omit for SQLite fallback)*
+   * `GROQ_API_KEY`: *(Your Groq API key)*
+   * `JWT_SECRET`: *(A secure 32+ character random string)*
+   * `CONFIDENCE_THRESHOLD`: `0.65`
+   * `FRONTEND_URL`: `https://brandguard-web.onrender.com`
+5. Click **Create Web Service**.

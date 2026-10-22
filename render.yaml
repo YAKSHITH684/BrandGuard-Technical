@@ -1,6 +1,6 @@
 services:
   # ---------------------------------------------------------------------------
-  # 1. Backend Web Service: FastAPI + pgvector + Groq
+  # 1. Web Service: FastAPI Backend (Python 3.12)
   # ---------------------------------------------------------------------------
   - type: web
     name: brandguard-api
@@ -20,7 +20,7 @@ services:
       - key: EMBEDDING_MODEL
         value: "all-MiniLM-L6-v2"
       - key: GROQ_API_KEY
-        sync: false # Set in Render Dashboard
+        sync: false # Enter your Groq API key in Render Dashboard
       - key: FRONTEND_URL
         value: https://brandguard-web.onrender.com
       - key: DATABASE_URL
@@ -29,19 +29,23 @@ services:
           property: connectionString
 
   # ---------------------------------------------------------------------------
-  # 2. Frontend Web Service: Next.js + Tailwind CSS
+  # 2. Static Site: Next.js Frontend (Pure HTML/CSS/JS on Render Global CDN)
   # ---------------------------------------------------------------------------
-  - type: web
+  - type: static
     name: brandguard-web
-    runtime: node
     rootDir: frontend
     buildCommand: npm install && npm run build
-    startCommand: npm run start -- -p $PORT
-    plan: free
-    autoDeploy: true
+    staticPublishPath: ./out
+    pullRequestPreviewsEnabled: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=0, must-revalidate
     envVars:
-      - key: NODE_VERSION
-        value: 20.18.0
       - key: NEXT_PUBLIC_API_URL
         value: https://brandguard-api.onrender.com/api
 
