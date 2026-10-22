@@ -1,4 +1,22 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+export function getApiBase() {
+  if (typeof window !== "undefined") {
+    const custom = localStorage.getItem("brandguard_api_url");
+    if (custom && custom.trim()) {
+      return custom.trim().replace(/\/+$/, "");
+    }
+  }
+  return (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api").replace(/\/+$/, "");
+}
+
+export function setApiBase(url) {
+  if (typeof window !== "undefined") {
+    if (url && url.trim()) {
+      localStorage.setItem("brandguard_api_url", url.trim().replace(/\/+$/, ""));
+    } else {
+      localStorage.removeItem("brandguard_api_url");
+    }
+  }
+}
 
 function getHeaders(isFormData = false) {
   const headers = {};
@@ -15,7 +33,8 @@ function getHeaders(isFormData = false) {
 }
 
 async function request(endpoint, options = {}) {
-  const url = `${API_BASE}${endpoint}`;
+  const base = getApiBase();
+  const url = `${base}${endpoint}`;
   const isFormData = options.body instanceof FormData;
   const config = {
     ...options,
@@ -25,26 +44,41 @@ async function request(endpoint, options = {}) {
     },
   };
 
-  const res = await fetch(url, config);
-  if (!res.ok) {
-    let errorDetail = `Request failed (${res.status})`;
-    try {
-      const errJson = await res.json();
-      errorDetail = errJson.detail || errorDetail;
-    } catch (e) {
-      // ignore
+  try {
+    const res = await fetch(url, config);
+    if (!res.ok) {
+      let errorDetail = `Request failed (${res.status})`;
+      try {
+        const errJson = await res.json();
+        errorDetail = errJson.detail || errorDetail;
+      } catch (e) {
+        // ignore
+      }
+      throw new Error(errorDetail);
     }
-    throw new Error(errorDetail);
+    // If response is CSV or blob
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("text/csv")) {
+      return res.text();
+    }
+    return res.json();
+  } catch (err) {
+    if (err.name === "TypeError" && err.message.toLowerCase().includes("fetch")) {
+      throw new Error(`Cannot reach backend at ${base}. Please verify your backend service is running.`);
+    }
+    throw err;
   }
-  // If response is CSV or blob
-  const contentType = res.headers.get("content-type");
-  if (contentType && contentType.includes("text/csv")) {
-    return res.text();
-  }
-  return res.json();
 }
 
 export const api = {
+  getApiBase,
+  setApiBase,
+  checkBackendHealth: async () => {
+    const base = getApiBase();
+    const res = await fetch(`${base}/health`, { method: "GET" });
+    if (!res.ok) throw new Error(`Health check failed (${res.status})`);
+    return res.json();
+  },
   // Auth
   login: (email, password) =>
     request("/auth/login", {
@@ -185,5 +219,5 @@ export const api = {
     const query = new URLSearchParams(params).toString();
     return request(`/audit${query ? `?${query}` : ""}`);
   },
-  getAuditExportUrl: () => `${API_BASE}/audit/export`,
+  getAuditExportUrl: () => `${getApiBase()}/audit/export`,
 };

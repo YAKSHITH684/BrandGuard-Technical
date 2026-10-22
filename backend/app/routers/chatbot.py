@@ -1,12 +1,13 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import get_db
 from app.models.user import User
+from app.models.workspace import Workspace
 from app.models.source import GlossaryTerm
 from app.schemas.ai import ChatRequest, ChatResponse, CitedSource
-from app.routers.auth import get_current_user
+from app.routers.auth import get_optional_user
 from app.ai.retrieval import retrieve_relevant_chunks
 from app.services.audit import log_audit_event
 
@@ -32,18 +33,28 @@ RULES & INSTRUCTIONS:
 @router.post("/chat", response_model=ChatResponse)
 def chat_with_brandguard_copilot(
     req: ChatRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_optional_user),
     db: Session = Depends(get_db)
 ):
     user_msg = req.message.strip()
     if not user_msg:
         raise HTTPException(status_code=400, detail="Message cannot be empty")
 
-    # 1. Retrieve relevant source chunks for workspace
-    retrieved = retrieve_relevant_chunks(db, current_user.workspace_id, user_msg, top_k=4, min_similarity=0.15)
+    # 1. Resolve workspace
+    if current_user:
+        ws_id = current_user.workspace_id
+        actor_id = current_user.id
+    else:
+        # Default/demo workspace for guest exploratory chat
+        first_ws = db.query(Workspace).first()
+        ws_id = first_ws.id if first_ws else None
+        actor_id = "guest_user"
+
+    # Retrieve relevant source chunks for workspace
+    retrieved = retrieve_relevant_chunks(db, ws_id, user_msg, top_k=4, min_similarity=0.15) if ws_id else []
     
-    # 2. Retrieve glossary items that match terms in message
-    glossary = db.query(GlossaryTerm).filter(GlossaryTerm.workspace_id == current_user.workspace_id).all()
+    # Retrieve glossary items that match terms in message
+    glossary = db.query(GlossaryTerm).filter(GlossaryTerm.workspace_id == ws_id).all() if ws_id else []
     matching_terms = [g for g in glossary if g.term.lower() in user_msg.lower()]
 
     cited_sources = [
@@ -96,15 +107,19 @@ def chat_with_brandguard_copilot(
 
             reply = completion.choices[0].message.content
 
-            log_audit_event(
-                db=db,
-                workspace_id=current_user.workspace_id,
-                actor_id=current_user.id,
-                event_type="ai_assistant_chat",
-                entity_type="chat_session",
-                entity_id=current_user.id,
-                metadata={"model": model_name, "sources_cited": len(cited_sources)}
-            )
+            if current_user and ws_id:
+                try:
+                    log_audit_event(
+                        db=db,
+                        workspace_id=ws_id,
+                        actor_id=actor_id,
+                        event_type="ai_assistant_chat",
+                        entity_type="chat_session",
+                        entity_id=actor_id,
+                        metadata={"model": model_name, "sources_cited": len(cited_sources)}
+                    )
+                except Exception:
+                    pass
 
             return ChatResponse(
                 reply=reply,
