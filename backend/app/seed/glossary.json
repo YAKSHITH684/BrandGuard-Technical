@@ -1,0 +1,50 @@
+[
+  {
+    "term": "HyperSync",
+    "type": "banned",
+    "replacement": "Acme LiveSync",
+    "note": "HyperSync was phased out in 2024. Use Acme LiveSync exclusively."
+  },
+  {
+    "term": "MegaCloud",
+    "type": "banned",
+    "replacement": "Acme Enterprise Hub",
+    "note": "Internal project code name; prohibited in customer communications."
+  },
+  {
+    "term": "cheap alternatives",
+    "type": "banned",
+    "replacement": "alternative architectures",
+    "note": "Competitor disparagement policy Section 2."
+  },
+  {
+    "term": "unbreakable",
+    "type": "banned",
+    "replacement": "highly fault-tolerant",
+    "note": "Superlative and absolute claim prohibition Section 3."
+  },
+  {
+    "term": "guaranteed results",
+    "type": "banned",
+    "replacement": "proven outcomes",
+    "note": "Legal warranty liability policy Section 3.4."
+  },
+  {
+    "term": "Acme LiveSync",
+    "type": "preferred",
+    "replacement": null,
+    "note": "Standard official trademarked product line name."
+  },
+  {
+    "term": "Acme Enterprise Hub",
+    "type": "preferred",
+    "replacement": null,
+    "note": "Official enterprise SaaS offering name."
+  },
+  {
+    "term": "SOC2 Type II",
+    "type": "required",
+    "replacement": null,
+    "note": "Security credentials must cite Type II attestation when mentioning SOC compliance."
+  }
+]

@@ -1,0 +1,56 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.config import settings
+from app.database import init_db
+from app.routers import auth, sources, drafts, findings, reviews, checks, insights, audit, chatbot
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    description="Explainable Pre-Publish Brand Governance Platform"
+)
+
+# CORS setup
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    settings.FRONTEND_URL
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Startup hook to initialize DB tables
+@app.on_event("startup")
+def on_startup():
+    init_db()
+
+# Health heartbeat
+@app.get("/api/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "version": settings.VERSION,
+        "groq_configured": bool(settings.GROQ_API_KEY)
+    }
+
+# Include all routers
+app.include_router(auth.router, prefix=settings.API_V1_STR)
+app.include_router(sources.router, prefix=settings.API_V1_STR)
+app.include_router(drafts.router, prefix=settings.API_V1_STR)
+app.include_router(findings.router, prefix=settings.API_V1_STR)
+app.include_router(reviews.router, prefix=settings.API_V1_STR)
+app.include_router(checks.router, prefix=settings.API_V1_STR)
+app.include_router(insights.router, prefix=settings.API_V1_STR)
+app.include_router(audit.router, prefix=settings.API_V1_STR)
+app.include_router(chatbot.router, prefix=settings.API_V1_STR)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
