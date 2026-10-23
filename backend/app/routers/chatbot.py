@@ -1,4 +1,5 @@
 from typing import List, Dict, Any, Optional
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.config import settings
@@ -86,10 +87,11 @@ def chat_with_brandguard_copilot(
             client = Groq(api_key=settings.GROQ_API_KEY)
             model_name = get_best_groq_model(client)
 
+            today_str = datetime.now().strftime("%A, %B %d, %Y")
             messages = [
                 {
                     "role": "system",
-                    "content": f"{SYSTEM_CHAT_PROMPT}\n\nCURRENT APPROVED WORKSPACE CONTEXT:\n{context_str}"
+                    "content": f"{SYSTEM_CHAT_PROMPT}\n\nToday's Date: {today_str}\n\nCURRENT APPROVED WORKSPACE CONTEXT:\n{context_str}"
                 }
             ]
 
