@@ -36,7 +36,9 @@ def on_startup():
     except Exception as e:
         print(f"[Warning] Seeding skipped or encountered error: {e}")
 
-# Health heartbeat
+# Health heartbeat & root status
+@app.get("/")
+@app.get("/health")
 @app.get("/api/health")
 def health_check():
     return {
@@ -46,16 +48,22 @@ def health_check():
         "groq_configured": bool(settings.GROQ_API_KEY)
     }
 
-# Include all routers
-app.include_router(auth.router, prefix=settings.API_V1_STR)
-app.include_router(sources.router, prefix=settings.API_V1_STR)
-app.include_router(drafts.router, prefix=settings.API_V1_STR)
-app.include_router(findings.router, prefix=settings.API_V1_STR)
-app.include_router(reviews.router, prefix=settings.API_V1_STR)
-app.include_router(checks.router, prefix=settings.API_V1_STR)
-app.include_router(insights.router, prefix=settings.API_V1_STR)
-app.include_router(audit.router, prefix=settings.API_V1_STR)
-app.include_router(chatbot.router, prefix=settings.API_V1_STR)
+# Include all routers under both /api and root ("") so requests work with or without /api prefix
+all_routers = [
+    auth.router,
+    sources.router,
+    drafts.router,
+    findings.router,
+    reviews.router,
+    checks.router,
+    insights.router,
+    audit.router,
+    chatbot.router
+]
+
+for router in all_routers:
+    app.include_router(router, prefix=settings.API_V1_STR)
+    app.include_router(router, prefix="")
 
 if __name__ == "__main__":
     import uvicorn

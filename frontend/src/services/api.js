@@ -1,4 +1,5 @@
 export function getApiBase() {
+  let base = "";
   if (typeof window !== "undefined") {
     let custom = localStorage.getItem("brandguard_api_url");
     // Auto-migrate legacy/defunct brandguard-api domain to the live brandguard-technical1 backend
@@ -7,10 +8,16 @@ export function getApiBase() {
       localStorage.setItem("brandguard_api_url", custom);
     }
     if (custom && custom.trim()) {
-      return custom.trim().replace(/\/+$/, "");
+      base = custom.trim().replace(/\/+$/, "");
     }
   }
-  return (process.env.NEXT_PUBLIC_API_URL || "https://brandguard-technical1.onrender.com/api").replace(/\/+$/, "");
+  if (!base) {
+    base = (process.env.NEXT_PUBLIC_API_URL || "https://brandguard-technical1.onrender.com/api").trim().replace(/\/+$/, "");
+  }
+  if (!base.endsWith("/api")) {
+    base = `${base}/api`;
+  }
+  return base;
 }
 
 export function setApiBase(url) {
