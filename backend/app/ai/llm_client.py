@@ -38,6 +38,32 @@ def clean_json_response(raw_text: str) -> str:
         raw = raw[:-3]
     return raw.strip()
 
+_cached_groq_model = None
+
+def get_best_groq_model(client) -> str:
+    global _cached_groq_model
+    if _cached_groq_model:
+        return _cached_groq_model
+    try:
+        models = [m.id for m in client.models.list().data]
+        priority = [
+            "llama-3.3-70b-versatile",
+            "llama-3.1-70b-versatile",
+            "qwen/qwen3.8-27b",
+            "openai/gpt-oss-120b",
+            "openai/gpt-oss-20b"
+        ]
+        for p in priority:
+            if p in models:
+                _cached_groq_model = p
+                return p
+        if models:
+            _cached_groq_model = models[0]
+            return models[0]
+    except Exception:
+        pass
+    return "qwen/qwen3.8-27b"
+
 def run_llm_review(
     draft_text: str,
     retrieved_chunks: List[Dict[str, Any]],
@@ -52,7 +78,7 @@ def run_llm_review(
 
     client = Groq(api_key=settings.GROQ_API_KEY)
     user_prompt = build_review_user_prompt(draft_text, retrieved_chunks)
-    model_name = "llama-3.3-70b-versatile"
+    model_name = get_best_groq_model(client)
 
     chunks_by_id = {c.get("id"): c for c in retrieved_chunks}
 

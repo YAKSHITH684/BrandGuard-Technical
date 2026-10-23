@@ -9,6 +9,7 @@ from app.models.source import GlossaryTerm
 from app.schemas.ai import ChatRequest, ChatResponse, CitedSource
 from app.routers.auth import get_optional_user
 from app.ai.retrieval import retrieve_relevant_chunks
+from app.ai.llm_client import get_best_groq_model
 from app.services.audit import log_audit_event
 
 try:
@@ -83,7 +84,7 @@ def chat_with_brandguard_copilot(
     if settings.GROQ_API_KEY and groq_available:
         try:
             client = Groq(api_key=settings.GROQ_API_KEY)
-            model_name = "llama-3.3-70b-versatile"
+            model_name = get_best_groq_model(client)
 
             messages = [
                 {
@@ -129,6 +130,7 @@ def chat_with_brandguard_copilot(
             )
         except Exception as e:
             # Fall through to offline fallback if Groq call encounters network/key error
+            print(f"[CHATBOT GROQ ERROR] {type(e).__name__}: {e}")
             pass
 
     # 4. Fallback when GROQ_API_KEY is not set or network fails
