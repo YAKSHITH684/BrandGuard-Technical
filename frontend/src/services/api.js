@@ -1,11 +1,16 @@
 export function getApiBase() {
   if (typeof window !== "undefined") {
-    const custom = localStorage.getItem("brandguard_api_url");
+    let custom = localStorage.getItem("brandguard_api_url");
+    // Auto-migrate legacy/defunct brandguard-api domain to the live brandguard-technical1 backend
+    if (custom && custom.includes("brandguard-api.onrender.com")) {
+      custom = custom.replace("brandguard-api.onrender.com", "brandguard-technical1.onrender.com");
+      localStorage.setItem("brandguard_api_url", custom);
+    }
     if (custom && custom.trim()) {
       return custom.trim().replace(/\/+$/, "");
     }
   }
-  return (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api").replace(/\/+$/, "");
+  return (process.env.NEXT_PUBLIC_API_URL || "https://brandguard-technical1.onrender.com/api").replace(/\/+$/, "");
 }
 
 export function setApiBase(url) {

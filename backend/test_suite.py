@@ -111,7 +111,7 @@ def run_tests():
     })
     assert res.status_code == 200
     revised_draft = res.json()
-    assert revised_draft["current_version"] == 2
+    assert revised_draft["current_version"] == target_draft["current_version"] + 1
     print(f"[PASS] 11. Draft revision submitted. Incremented to Version 2")
 
     res = client.get(f"/api/drafts/{draft_id}/diff?from=1&to=2", headers=headers)

@@ -254,8 +254,8 @@ export default function GroqChatBot() {
                     <button
                       type="button"
                       onClick={() => {
-                        setCustomApiUrl("https://brandguard-api.onrender.com/api");
-                        handleSaveApiUrl("https://brandguard-api.onrender.com/api");
+                        setCustomApiUrl("https://brandguard-technical1.onrender.com/api");
+                        handleSaveApiUrl("https://brandguard-technical1.onrender.com/api");
                       }}
                       className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-teal-300 rounded border border-slate-700"
                     >

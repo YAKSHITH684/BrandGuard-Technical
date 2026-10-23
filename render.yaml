@@ -3,7 +3,7 @@ services:
   # 1. Web Service: FastAPI Backend (Python 3.12)
   # ---------------------------------------------------------------------------
   - type: web
-    name: brandguard-api
+    name: brandguard-technical1
     runtime: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt
@@ -22,17 +22,15 @@ services:
       - key: GROQ_API_KEY
         sync: false # Enter your Groq API key in Render Dashboard
       - key: FRONTEND_URL
-        value: https://brandguard-web.onrender.com
+        value: https://brandguard-technical.onrender.com
       - key: DATABASE_URL
-        fromDatabase:
-          name: brandguard-db
-          property: connectionString
+        value: sqlite:///./brandguard.db
 
   # ---------------------------------------------------------------------------
   # 2. Static Site: Next.js Frontend (Pure HTML/CSS/JS on Render Global CDN)
   # ---------------------------------------------------------------------------
   - type: static
-    name: brandguard-web
+    name: brandguard-technical
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: ./out
@@ -47,7 +45,7 @@ services:
         value: public, max-age=0, must-revalidate
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://brandguard-api.onrender.com/api
+        value: https://brandguard-technical1.onrender.com/api
 
 # -----------------------------------------------------------------------------
 # 3. Managed PostgreSQL Database with pgvector support

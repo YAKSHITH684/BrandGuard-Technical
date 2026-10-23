@@ -251,7 +251,7 @@ export default function SettingsPage() {
                 type="text"
                 value={apiUrl}
                 onChange={(e) => setApiUrl(e.target.value)}
-                placeholder="https://brandguard-api.onrender.com/api"
+                placeholder="https://brandguard-technical1.onrender.com/api"
                 className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
               />
 
@@ -270,8 +270,8 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      setApiUrl("https://brandguard-api.onrender.com/api");
-                      testAndSaveApi("https://brandguard-api.onrender.com/api");
+                      setApiUrl("https://brandguard-technical1.onrender.com/api");
+                      testAndSaveApi("https://brandguard-technical1.onrender.com/api");
                     }}
                     className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg border border-emerald-200 text-[10px] font-medium"
                   >

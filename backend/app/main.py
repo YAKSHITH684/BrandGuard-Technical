@@ -26,10 +26,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Startup hook to initialize DB tables
+# Startup hook to initialize DB tables and seed demo personas
 @app.on_event("startup")
 def on_startup():
     init_db()
+    try:
+        from app.seed.populate_demo_cases import ensure_seed_data
+        ensure_seed_data()
+    except Exception as e:
+        print(f"[Warning] Seeding skipped or encountered error: {e}")
 
 # Health heartbeat
 @app.get("/api/health")
