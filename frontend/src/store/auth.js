@@ -48,6 +48,18 @@ export function AuthProvider({ children }) {
     return me;
   };
 
+  const resetPassword = async (email, newPassword) => {
+    const res = await api.resetPassword(email, newPassword);
+    if (res.access_token) {
+      localStorage.setItem("brandguard_token", res.access_token);
+      setToken(res.access_token);
+      const me = await api.getMe();
+      setUser(me);
+      return me;
+    }
+    return res;
+  };
+
   const logout = () => {
     localStorage.removeItem("brandguard_token");
     setToken(null);
@@ -73,6 +85,7 @@ export function AuthProvider({ children }) {
         loading,
         login,
         register,
+        resetPassword,
         logout,
         switchRole,
         refreshUser: () => api.getMe().then(setUser),

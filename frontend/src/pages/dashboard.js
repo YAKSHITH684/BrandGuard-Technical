@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import AppShell from "../components/AppShell/AppShell";
 import { useAuth } from "../store/auth";
 import { api } from "../services/api";
@@ -16,28 +17,36 @@ import {
 } from "lucide-react";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [drafts, setDrafts] = useState([]);
   const [queue, setQueue] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const [draftsData, queueData] = await Promise.all([
-          api.getDrafts().catch(() => []),
-          api.getReviewQueue().catch(() => []),
-        ]);
-        setDrafts(draftsData || []);
-        setQueue(queueData || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+    if (!authLoading && !user) {
+      router.push("/login");
+      return;
     }
-    loadData();
-  }, [user]);
+
+    if (user) {
+      async function loadData() {
+        try {
+          const [draftsData, queueData] = await Promise.all([
+            api.getDrafts().catch(() => []),
+            api.getReviewQueue().catch(() => []),
+          ]);
+          setDrafts(draftsData || []);
+          setQueue(queueData || []);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      }
+      loadData();
+    }
+  }, [user, authLoading, router]);
 
   const statusColors = {
     DRAFT: "bg-slate-100 text-slate-700 border-slate-200",
@@ -145,8 +154,10 @@ export default function DashboardPage() {
           </div>
 
           {loading ? (
-            <div className="p-8 text-center text-slate-400 text-xs animate-pulse">
-              Loading workspace drafts...
+            <div className="p-8 text-center text-slate-500 text-xs flex flex-col items-center justify-center gap-2">
+              <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+              <span className="font-medium text-slate-700">Loading workspace drafts...</span>
+              <span className="text-[11px] text-slate-400">Connecting to cloud governance engine</span>
             </div>
           ) : drafts.length === 0 ? (
             <div className="text-center py-10 border border-dashed border-slate-200 rounded-xl">

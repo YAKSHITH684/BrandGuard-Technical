@@ -12,6 +12,7 @@ from app.models.workspace import Workspace
 from app.schemas.auth import (
     RegisterRequest,
     LoginRequest,
+    ResetPasswordRequest,
     TokenResponse,
     UserOut,
     WorkspaceOut,
@@ -116,6 +117,32 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == req.email.lower()).first()
     if not user or not verify_password(req.password, user.password_hash):
         raise HTTPException(status_code=400, detail="Invalid email or password")
+
+    token = create_access_token({"sub": user.id, "email": user.email, "role": user.role, "ws": user.workspace_id})
+    return {"access_token": token, "token_type": "bearer"}
+
+@router.post("/reset-password", response_model=TokenResponse)
+def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == req.email.lower()).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="No account registered with this email address")
+
+    if not req.new_password or len(req.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    user.password_hash = hash_password(req.new_password)
+    db.commit()
+    db.refresh(user)
+
+    log_audit_event(
+        db=db,
+        workspace_id=user.workspace_id,
+        actor_id=user.id,
+        event_type="password_reset",
+        entity_type="user",
+        entity_id=user.id,
+        metadata={"email": user.email}
+    )
 
     token = create_access_token({"sub": user.id, "email": user.email, "role": user.role, "ws": user.workspace_id})
     return {"access_token": token, "token_type": "bearer"}
