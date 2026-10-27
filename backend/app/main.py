@@ -45,11 +45,16 @@ def on_startup():
 @app.get("/health")
 @app.get("/api/health")
 def health_check():
+    key = settings.GROQ_API_KEY or ""
+    masked_key = ""
+    if key:
+        masked_key = f"{key[:8]}...{key[-4:]}" if len(key) > 12 else "configured"
     return {
         "status": "healthy",
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION,
-        "groq_configured": bool(settings.GROQ_API_KEY)
+        "groq_configured": bool(settings.GROQ_API_KEY),
+        "groq_key_preview": masked_key
     }
 
 # Include all routers under both /api and root ("") so requests work with or without /api prefix

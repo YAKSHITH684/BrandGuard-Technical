@@ -1,3 +1,4 @@
+import os
 import bcrypt
 import jwt
 from datetime import datetime, timedelta
@@ -171,6 +172,35 @@ def update_settings(
 
     if req.role is not None and req.role in ["creator", "brand_manager", "reviewer"]:
         current_user.role = req.role
+
+    if req.groq_api_key is not None:
+        new_key = req.groq_api_key.strip()
+        settings.GROQ_API_KEY = new_key
+        os.environ["GROQ_API_KEY"] = new_key
+        # Persist to .env
+        env_paths = [
+            os.path.join(os.getcwd(), ".env"),
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env")
+        ]
+        for ep in env_paths:
+            if os.path.exists(ep):
+                try:
+                    with open(ep, "r", encoding="utf-8") as f:
+                        lines = f.readlines()
+                    new_lines = []
+                    found = False
+                    for line in lines:
+                        if line.startswith("GROQ_API_KEY="):
+                            new_lines.append(f"GROQ_API_KEY={new_key}\n")
+                            found = True
+                        else:
+                            new_lines.append(line)
+                    if not found:
+                        new_lines.append(f"GROQ_API_KEY={new_key}\n")
+                    with open(ep, "w", encoding="utf-8") as f:
+                        f.writelines(new_lines)
+                except Exception as e:
+                    print(f"[Settings] Error writing to .env ({ep}): {e}")
 
     db.commit()
     db.refresh(current_user)

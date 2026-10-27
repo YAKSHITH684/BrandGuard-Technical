@@ -4,6 +4,7 @@ import AppShell from "../../components/AppShell/AppShell";
 import DraftViewer from "../../components/DraftViewer/DraftViewer";
 import FindingCard from "../../components/FindingCard/FindingCard";
 import VersionDiff from "../../components/VersionDiff/VersionDiff";
+import VoiceDictation from "../../components/VoiceDictation/VoiceDictation";
 import { api } from "../../services/api";
 import { useAuth } from "../../store/auth";
 import {
@@ -19,8 +20,11 @@ import {
   Cpu,
   ArrowLeft,
   RefreshCw,
-  Clock
+  Clock,
+  Volume2,
+  VolumeX
 } from "lucide-react";
+import { speakText, stopSpeech, formatFindingForSpeech } from "../../utils/speech";
 
 export default function DraftDetailPage() {
   const router = useRouter();
@@ -44,6 +48,15 @@ export default function DraftDetailPage() {
   // Approval note state
   const [approvalNote, setApprovalNote] = useState("");
   const [submittingApproval, setSubmittingApproval] = useState(false);
+
+  // Audio findings walkthrough state
+  const [isReadingAll, setIsReadingAll] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      stopSpeech();
+    };
+  }, []);
 
   const loadDraft = async () => {
     if (!id) return;
@@ -189,6 +202,40 @@ export default function DraftDetailPage() {
     } finally {
       setPostingComment(false);
     }
+  };
+
+  const handleToggleReadAllFindings = () => {
+    if (isReadingAll) {
+      stopSpeech();
+      setIsReadingAll(false);
+      return;
+    }
+
+    if (!findings || findings.length === 0) return;
+
+    setIsReadingAll(true);
+    let idx = 0;
+
+    const playNext = () => {
+      if (idx >= findings.length) {
+        setIsReadingAll(false);
+        return;
+      }
+      const f = findings[idx];
+      setSelectedFindingId(f.id);
+      const text = `Finding ${idx + 1} of ${findings.length}. ${formatFindingForSpeech(f)}`;
+      speakText(text, {
+        onEnd: () => {
+          idx++;
+          playNext();
+        },
+        onError: () => {
+          setIsReadingAll(false);
+        }
+      });
+    };
+
+    playNext();
   };
 
   if (loading || !draft) {
@@ -459,8 +506,21 @@ export default function DraftDetailPage() {
             {/* Tab 2: Revision Editor */}
             {activeTab === "revise" && (
               <form onSubmit={handlePostRevision} className="space-y-3">
-                <div className="text-xs text-slate-500">
-                  Accepted rewrites automatically populate below. Tweak text and resubmit to trigger version {draft.current_version + 1}.
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                  <div className="text-xs text-slate-500">
+                    Accepted rewrites automatically populate below. Tweak text and resubmit to trigger version {draft.current_version + 1}.
+                  </div>
+                  <VoiceDictation
+                    onTranscript={(newSpeech) => {
+                      setRevisionContent((prev) => (prev ? `${prev} ${newSpeech}` : newSpeech));
+                    }}
+                    hasImagesOrRedaction={Boolean(draft.current_version_data?.images_data && draft.current_version_data.images_data.length > 0)}
+                    disabledReason={
+                      draft.current_version_data?.images_data && draft.current_version_data.images_data.length > 0
+                        ? "Voice dictation disabled: Draft contains multimodal assets with potential sensitive/redacted data."
+                        : ""
+                    }
+                  />
                 </div>
                 <textarea
                   rows={14}
@@ -535,9 +595,39 @@ export default function DraftDetailPage() {
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 Explainable Findings ({findings.length})
               </span>
-              <span className="text-[10px] text-slate-400 font-normal">
-                Human-in-the-loop review
-              </span>
+              <div className="flex items-center gap-2">
+                {findings.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleToggleReadAllFindings}
+                    title={
+                      isReadingAll
+                        ? "Stop audio readout"
+                        : "Listen to audio walkthrough of findings (Local TTS)"
+                    }
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition shadow-2xs ${
+                      isReadingAll
+                        ? "bg-emerald-600 text-white animate-pulse"
+                        : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200"
+                    }`}
+                  >
+                    {isReadingAll ? (
+                      <>
+                        <VolumeX className="w-3 h-3" />
+                        <span>Stop Audio</span>
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className="w-3 h-3 text-emerald-600" />
+                        <span>Read All Aloud</span>
+                      </>
+                    )}
+                  </button>
+                )}
+                <span className="text-[10px] text-slate-400 font-normal hidden sm:inline">
+                  Human-in-the-loop review
+                </span>
+              </div>
             </div>
 
             {findings.length === 0 ? (

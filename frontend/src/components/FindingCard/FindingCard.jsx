@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ClaimBadge from "../ClaimBadge/ClaimBadge";
 import {
   ShieldAlert,
@@ -11,8 +11,11 @@ import {
   Cpu,
   Info,
   Clock,
-  UserCheck
+  UserCheck,
+  Volume2,
+  VolumeX
 } from "lucide-react";
+import { speakText, stopSpeech, formatFindingForSpeech } from "../../utils/speech";
 
 export default function FindingCard({
   finding,
@@ -30,6 +33,29 @@ export default function FindingCard({
   const [disputeReason, setDisputeReason] = useState("");
   const [rejectReason, setRejectReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [isSpeakingThis, setIsSpeakingThis] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (isSpeakingThis) {
+        stopSpeech();
+      }
+    };
+  }, [isSpeakingThis]);
+
+  const handleToggleReadAloud = () => {
+    if (isSpeakingThis) {
+      stopSpeech();
+      setIsSpeakingThis(false);
+    } else {
+      const speechText = formatFindingForSpeech(finding);
+      speakText(speechText, {
+        onStart: () => setIsSpeakingThis(true),
+        onEnd: () => setIsSpeakingThis(false),
+        onError: () => setIsSpeakingThis(false),
+      });
+    }
+  };
 
   const severityStyles = {
     high: "border-l-4 border-l-rose-500 bg-rose-50/20",
@@ -122,11 +148,43 @@ export default function FindingCard({
         </div>
       </div>
 
-      {/* Rule Name */}
-      <h4 className="text-sm font-semibold text-slate-900 mb-1 flex items-center gap-1.5">
-        <ShieldAlert className="w-4 h-4 text-slate-600 shrink-0" />
-        {finding.rule}
-      </h4>
+      {/* Rule Name & Local Accessibility Voice Readout */}
+      <div className="flex items-center justify-between gap-2 mb-1.5">
+        <h4 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+          <ShieldAlert className="w-4 h-4 text-slate-600 shrink-0" />
+          {finding.rule}
+        </h4>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleToggleReadAloud();
+          }}
+          title={
+            isSpeakingThis
+              ? "Stop audio readout"
+              : "Read finding aloud (Runs 100% locally on-device via Web Speech API)"
+          }
+          aria-label={isSpeakingThis ? "Stop reading finding aloud" : "Read finding aloud"}
+          className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-all shadow-2xs ${
+            isSpeakingThis
+              ? "bg-emerald-600 text-white animate-pulse"
+              : "bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-800 border border-slate-200"
+          }`}
+        >
+          {isSpeakingThis ? (
+            <>
+              <VolumeX className="w-3.5 h-3.5" />
+              <span>Stop Reading</span>
+            </>
+          ) : (
+            <>
+              <Volume2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Read Aloud</span>
+            </>
+          )}
+        </button>
+      </div>
 
       {/* Highlighted flagged text excerpt */}
       <div className="mb-3 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200">

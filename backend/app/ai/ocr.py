@@ -26,7 +26,9 @@ def extract_text_from_image(
 
     # Preset / mock text for common hackathon demo assets if no raw bytes provided
     name_lower = image_name.lower()
-    if "infographic" in name_lower or "banner" in name_lower or "q3" in name_lower or "q4" in name_lower:
+    if "uptime" in name_lower or "99.999" in name_lower or "sla" in name_lower:
+        return "Acme LiveSync 2.0 Enterprise Cloud delivers 99.999% uptime guaranteed with zero downtime across all regions."
+    elif "infographic" in name_lower or "banner" in name_lower or "q3" in name_lower or "q4" in name_lower:
         return (
             "Acme LiveSync 2.0 — Enterprise Cloud Architecture. "
             "Delivers 99.999% uptime guaranteed with zero downtime. "
@@ -34,6 +36,10 @@ def extract_text_from_image(
             "Processes 2.4 million events per second across 12 global regions. "
             "Contact lead architect at alex.vance@acmecorp.internal or call 415-555-0199."
         )
+    elif "car" in name_lower or "plate" in name_lower or "license" in name_lower or "vehicle" in name_lower:
+        return "Fleet Vehicle Registration: 7XYZ899 — Enterprise Fleet Operations."
+    elif "screenshot" in name_lower or "screen" in name_lower or "email" in name_lower or "inbox" in name_lower:
+        return "Employee Workstation Screenshot. Contact: alex.vance@acmecorp.internal or call 415-555-0199."
     elif "slide" in name_lower or "presentation" in name_lower:
         return (
             "Slide 4: Competitive Performance Metrics. "

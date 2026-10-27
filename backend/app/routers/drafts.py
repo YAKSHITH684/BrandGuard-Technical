@@ -1,4 +1,5 @@
 from typing import List, Optional
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -47,6 +48,17 @@ def create_draft_and_review(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    # Idempotency Guard: prevent duplicate draft creation from rapid double clicks
+    recent_cutoff = datetime.utcnow() - timedelta(seconds=6)
+    recent_draft = db.query(Draft).filter(
+        Draft.workspace_id == current_user.workspace_id,
+        Draft.author_id == current_user.id,
+        Draft.title == req.title,
+        Draft.created_at >= recent_cutoff
+    ).first()
+    if recent_draft:
+        return get_draft_detail_by_id(recent_draft.id, current_user.workspace_id, db)
+
     # 1. Create draft
     draft = Draft(
         workspace_id=current_user.workspace_id,
@@ -69,17 +81,28 @@ def create_draft_and_review(
     db.commit()
     db.refresh(version)
 
-    # 3. Run review pipeline
-    findings, ai_status = run_brandguard_review(
-        db=db,
-        workspace_id=current_user.workspace_id,
-        draft_version_id=version.id,
-        raw_content=req.content,
-        actor_id=current_user.id,
-        color_pairs=req.color_pairs,
-        alt_texts=req.alt_texts,
-        images=[img.model_dump() for img in req.images] if req.images else None
-    )
+    # 3. Run review pipeline with robust error handling (no hang on invalid assets)
+    try:
+        findings, ai_status = run_brandguard_review(
+            db=db,
+            workspace_id=current_user.workspace_id,
+            draft_version_id=version.id,
+            raw_content=req.content,
+            actor_id=current_user.id,
+            color_pairs=req.color_pairs,
+            alt_texts=req.alt_texts,
+            images=[img.model_dump() for img in req.images] if req.images else None
+        )
+    except ValueError as ve:
+        db.delete(version)
+        db.delete(draft)
+        db.commit()
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        db.delete(version)
+        db.delete(draft)
+        db.commit()
+        raise HTTPException(status_code=400, detail=f"Validation failed: {str(e)}")
 
     log_audit_event(
         db=db,
@@ -179,16 +202,22 @@ def create_draft_version(
     db.commit()
     db.refresh(version)
 
-    findings, ai_status = run_brandguard_review(
-        db=db,
-        workspace_id=current_user.workspace_id,
-        draft_version_id=version.id,
-        raw_content=req.content,
-        actor_id=current_user.id,
-        color_pairs=req.color_pairs,
-        alt_texts=req.alt_texts,
-        images=[img.model_dump() for img in req.images] if req.images else None
-    )
+    try:
+        findings, ai_status = run_brandguard_review(
+            db=db,
+            workspace_id=current_user.workspace_id,
+            draft_version_id=version.id,
+            raw_content=req.content,
+            actor_id=current_user.id,
+            color_pairs=req.color_pairs,
+            alt_texts=req.alt_texts,
+            images=[img.model_dump() for img in req.images] if req.images else None
+        )
+    except ValueError as ve:
+        db.delete(version)
+        draft.current_version = draft.current_version - 1
+        db.commit()
+        raise HTTPException(status_code=400, detail=str(ve))
 
     log_audit_event(
         db=db,

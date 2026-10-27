@@ -48,4 +48,5 @@ class UpdateSettingsRequest(BaseModel):
     workspace_name: Optional[str] = None
     readability_target: Optional[float] = None
     confidence_threshold: Optional[float] = None
+    groq_api_key: Optional[str] = None
     role: Optional[str] = None

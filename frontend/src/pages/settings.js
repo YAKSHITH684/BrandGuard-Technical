@@ -2,7 +2,29 @@ import React, { useState, useEffect } from "react";
 import AppShell from "../components/AppShell/AppShell";
 import { useAuth } from "../store/auth";
 import { api, getApiBase, setApiBase } from "../services/api";
-import { Settings, ShieldCheck, Cpu, User, CheckCircle2, AlertCircle, Server, RefreshCw } from "lucide-react";
+import {
+  Settings,
+  ShieldCheck,
+  Cpu,
+  User,
+  CheckCircle2,
+  AlertCircle,
+  Server,
+  RefreshCw,
+  Volume2,
+  Mic,
+  Lock,
+  Eye,
+  EyeOff,
+  Key
+} from "lucide-react";
+import {
+  speakText,
+  stopSpeech,
+  getDictationOptIn,
+  setDictationOptIn,
+  isSpeechSynthesisSupported
+} from "../utils/speech";
 
 export default function SettingsPage() {
   const { user, refreshUser, switchRole } = useAuth();
@@ -16,9 +38,14 @@ export default function SettingsPage() {
   const [apiUrl, setApiUrl] = useState("");
   const [apiTesting, setApiTesting] = useState(false);
   const [apiStatus, setApiStatus] = useState(null);
+  const [groqApiKey, setGroqApiKey] = useState("");
+  const [showGroqKey, setShowGroqKey] = useState(false);
+  const [dictationOptIn, setDictationOptInState] = useState(false);
+  const [testingSpeech, setTestingSpeech] = useState(false);
 
   useEffect(() => {
     setApiUrl(getApiBase());
+    setDictationOptInState(getDictationOptIn());
     if (user) {
       setUserName(user.name || "");
       if (user.workspace) {
@@ -55,7 +82,12 @@ export default function SettingsPage() {
         workspace_name: workspaceName,
         readability_target: parseFloat(readabilityTarget),
         confidence_threshold: parseFloat(confidenceThreshold),
+        groq_api_key: groqApiKey.trim() ? groqApiKey.trim() : undefined,
       });
+      setDictationOptIn(dictationOptIn);
+      const h = await api.getHealth();
+      setHealth(h);
+      setGroqApiKey("");
       await refreshUser();
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -195,11 +227,11 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* AI Engine Status */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3">
+          {/* AI Engine Status & Groq Key Configuration */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <Cpu className="w-4 h-4 text-emerald-600" />
-              AI Review Engine (Groq LLM)
+              AI Review Engine & BrandGuard Copilot (Groq Llama 3.3)
             </h2>
 
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
@@ -209,8 +241,9 @@ export default function SettingsPage() {
               </div>
               <div>
                 {health?.groq_configured ? (
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px]">
-                    GROQ_API_KEY Configured
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    GROQ_API_KEY Configured {health.groq_key_preview ? `(${health.groq_key_preview})` : ""}
                   </span>
                 ) : (
                   <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-[11px]">
@@ -219,9 +252,137 @@ export default function SettingsPage() {
                 )}
               </div>
             </div>
-            <p className="text-[11px] text-slate-500">
-              When GROQ_API_KEY is omitted or rate-limited, BrandGuard runs full deterministic checks (banned terms, claim patterns, contrast, readability) and reports <code>ai_review: unavailable</code> without interruption.
-            </p>
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-slate-700">
+                Groq API Key (<code>GROQ_API_KEY</code>)
+              </label>
+              <div className="relative">
+                <input
+                  type={showGroqKey ? "text" : "password"}
+                  value={groqApiKey}
+                  onChange={(e) => setGroqApiKey(e.target.value)}
+                  placeholder={
+                    health?.groq_configured
+                      ? `Key active (${health.groq_key_preview || "configured"}). Enter new key to update.`
+                      : "Paste key here (e.g. gsk_...)"
+                  }
+                  className="w-full text-xs font-mono p-2.5 pr-20 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowGroqKey(!showGroqKey)}
+                  className="absolute right-2 top-2 px-2 py-1 text-[11px] text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded font-medium"
+                >
+                  {showGroqKey ? "Hide" : "Show"}
+                </button>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Unlocks generative Llama 3.3 suggestions and the BrandGuard AI Copilot. When omitted, BrandGuard runs full deterministic checks with zero disruption. Click <strong>Save Settings</strong> below to apply.
+              </p>
+            </div>
+          </div>
+
+          {/* Voice & Accessibility Governance (Web Speech API) */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Volume2 className="w-4 h-4 text-emerald-600" />
+                Voice Accessibility & Zero-Exposure Privacy (Web Speech API)
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Native browser Web Speech capabilities: zero external audio dependencies, zero backend changes, zero API keys.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Feature 1: TTS Readout */}
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Volume2 className="w-4 h-4 text-emerald-600" />
+                      Read Findings Aloud (TTS)
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                      100% Local (Zero Exposure)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    Reads findings, violations, and citations aloud directly from finding cards or the walkthrough console. Speech synthesis runs completely on your device with no network transmission.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (testingSpeech) {
+                        stopSpeech();
+                        setTestingSpeech(false);
+                      } else {
+                        setTestingSpeech(true);
+                        speakText(
+                          "BrandGuard voice accessibility is active. All finding readouts execute locally in your browser with zero exposure.",
+                          {
+                            onEnd: () => setTestingSpeech(false),
+                            onError: () => setTestingSpeech(false),
+                          }
+                        );
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition ${
+                      testingSpeech
+                        ? "bg-emerald-600 text-white animate-pulse"
+                        : "bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-300"
+                    }`}
+                  >
+                    <Volume2 className="w-3.5 h-3.5" />
+                    {testingSpeech ? "Playing Local Audio..." : "Test Finding Readout"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Feature 2: Dictation STT */}
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Mic className="w-4 h-4 text-indigo-600" />
+                      Draft Voice Dictation (STT)
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        dictationOptIn
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-slate-200 text-slate-600"
+                      }`}
+                    >
+                      {dictationOptIn ? "Opted In" : "Opted Out"}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    Browser-based speech-to-text for drafting marketing copy. To protect zero exposure, dictation is strictly opt-in and permanently disabled on image assets, OCR, and redacted content.
+                  </p>
+                </div>
+                <div className="pt-2 flex items-center gap-3">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={dictationOptIn}
+                      onChange={(e) => {
+                        setDictationOptInState(e.target.checked);
+                        setDictationOptIn(e.target.checked);
+                      }}
+                      className="rounded text-emerald-600 focus:ring-emerald-500"
+                    />
+                    Enable Voice Dictation for Drafts
+                  </label>
+                  <span className="text-[10px] text-slate-400">
+                    (Requires mic permission)
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Backend API Connection & Render Service URL */}

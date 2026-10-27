@@ -16,8 +16,11 @@ import {
   AlertCircle,
   HelpCircle,
   Wifi,
-  WifiOff
+  WifiOff,
+  Volume2,
+  VolumeX
 } from "lucide-react";
+import { speakText, stopSpeech } from "../../utils/speech";
 
 export default function GroqChatBot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,7 +38,14 @@ export default function GroqChatBot() {
   const [showConfig, setShowConfig] = useState(false);
   const [customApiUrl, setCustomApiUrl] = useState("");
   const [configFeedback, setConfigFeedback] = useState(null);
+  const [speakingMsgIdx, setSpeakingMsgIdx] = useState(null);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      stopSpeech();
+    };
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -376,6 +386,45 @@ export default function GroqChatBot() {
                             "{s.content.slice(0, 110)}..."
                           </div>
                         ))}
+                      </div>
+                    )}
+
+                    {/* Local TTS Speech Readout for Assistant message */}
+                    {!isUser && !m.isError && (
+                      <div className="mt-2 pt-1 border-t border-slate-100 flex items-center justify-end">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (speakingMsgIdx === idx) {
+                              stopSpeech();
+                              setSpeakingMsgIdx(null);
+                            } else {
+                              setSpeakingMsgIdx(idx);
+                              speakText(m.content, {
+                                onEnd: () => setSpeakingMsgIdx(null),
+                                onError: () => setSpeakingMsgIdx(null),
+                              });
+                            }
+                          }}
+                          title={
+                            speakingMsgIdx === idx
+                              ? "Stop audio"
+                              : "Read response aloud (Local on-device Web Speech API)"
+                          }
+                          className="text-[10px] text-slate-400 hover:text-emerald-700 flex items-center gap-1 transition font-medium"
+                        >
+                          {speakingMsgIdx === idx ? (
+                            <>
+                              <VolumeX className="w-3 h-3 text-emerald-600 animate-pulse" />
+                              <span className="text-emerald-700 font-bold">Stop</span>
+                            </>
+                          ) : (
+                            <>
+                              <Volume2 className="w-3 h-3" />
+                              <span>Read Aloud</span>
+                            </>
+                          )}
+                        </button>
                       </div>
                     )}
                   </div>
