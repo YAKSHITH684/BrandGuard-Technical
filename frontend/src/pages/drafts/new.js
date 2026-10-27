@@ -559,8 +559,6 @@ For detailed security whitepapers and verification reports, explore the Acme Tru
               </div>
             )}
           </div>
-            )}
-          </div>
 
           {/* Color Contrast & Accessibility Inputs */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
