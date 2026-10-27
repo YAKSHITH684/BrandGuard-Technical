@@ -38,10 +38,38 @@ def clean_json_response(raw_text: str) -> str:
         raw = raw[:-3]
     return raw.strip()
 
-_cached_groq_model = "llama-3.3-70b-versatile"
+_cached_groq_model = None
 
 def get_best_groq_model(client) -> str:
     global _cached_groq_model
+    if _cached_groq_model:
+        return _cached_groq_model
+
+    preferred = [
+        "llama-3.3-70b-versatile",
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+        "qwen/qwen3.8-27b",
+        "llama-3.1-8b-instant"
+    ]
+
+    try:
+        models = client.models.list()
+        available_ids = {m.id for m in models.data}
+        for m in preferred:
+            if m in available_ids:
+                _cached_groq_model = m
+                return m
+
+        for m in models.data:
+            m_id = m.id.lower()
+            if not any(k in m_id for k in ["whisper", "guard", "vision", "embed"]):
+                _cached_groq_model = m.id
+                return m.id
+    except Exception as e:
+        print(f"[GROQ MODEL DISCOVERY WARNING] {e}")
+
+    _cached_groq_model = "openai/gpt-oss-120b"
     return _cached_groq_model
 
 def run_llm_review(
@@ -92,6 +120,10 @@ def run_llm_review(
             break
         except Exception as e:
             last_error = e
+            for fb in ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"]:
+                if fb != model_name:
+                    model_name = fb
+                    break
 
     if parsed_data is None:
         # If LLM failed or JSON invalid after retry, return empty or cannot_verify

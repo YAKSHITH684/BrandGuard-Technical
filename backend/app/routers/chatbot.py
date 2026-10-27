@@ -101,12 +101,32 @@ def chat_with_brandguard_copilot(
 
             messages.append({"role": "user", "content": user_msg})
 
-            completion = client.chat.completions.create(
-                model=model_name,
-                messages=messages,
-                temperature=0.2,
-                max_tokens=800
-            )
+            completion = None
+            try:
+                completion = client.chat.completions.create(
+                    model=model_name,
+                    messages=messages,
+                    temperature=0.2,
+                    max_tokens=800
+                )
+            except Exception as model_err:
+                print(f"[CHATBOT MODEL RETRY] {model_name} failed: {model_err}, trying available fallbacks...")
+                fallbacks = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b", "llama-3.3-70b-versatile"]
+                for fb in fallbacks:
+                    if fb != model_name:
+                        try:
+                            completion = client.chat.completions.create(
+                                model=fb,
+                                messages=messages,
+                                temperature=0.2,
+                                max_tokens=800
+                            )
+                            model_name = fb
+                            break
+                        except Exception:
+                            continue
+                if completion is None:
+                    raise model_err
 
             reply = completion.choices[0].message.content
 
@@ -162,6 +182,9 @@ def generate_offline_governance_reply(msg: str, terms: List[GlossaryTerm], chunk
                 f"**Mandatory Compliance Rule:** **'{t.term}'** is required when mentioning this topic. {t.note or ''}"
             )
 
+    if any(k in msg_lower for k in ["date", "today", "current date", "what day"]):
+        return f"Today is **{datetime.now().strftime('%A, %B %d, %Y')}**."
+
     if any(k in msg_lower for k in ["sla", "uptime", "availability"]):
         return (
             "**Verified Brand Fact:** The production Acme Enterprise Hub SLA guarantees **99.95% monthly uptime** (Effective 2025).\n\n"
@@ -185,13 +208,19 @@ def generate_offline_governance_reply(msg: str, terms: List[GlossaryTerm], chunk
 
     if chunks:
         c = chunks[0]
+        tip = "" if settings.GROQ_API_KEY else "\n\n*(Connect a Groq API key in Settings to chat interactively)*"
         return (
             f"**Approved Source Excerpt (Section: {c.get('section', 'General')}):**\n\n"
-            f"> {c['content']}\n\n"
-            f"*(Connect a Groq API key in Settings to chat interactively with Llama 3.3)*"
+            f"> {c['content']}{tip}"
+        )
+
+    if settings.GROQ_API_KEY:
+        return (
+            "I am your **BrandGuard Copilot**. Ask me anything about your brand voice, claims policy, approved SLA numbers, or banned terminology!\n\n"
+            "*(Operating in deterministic governance mode)*"
         )
 
     return (
         "I am the **BrandGuard Copilot**. Ask me anything about your brand voice, claims policy, approved SLA numbers, or banned terminology!\n\n"
-        "*(To enable generative Llama 3.3 completions, add your free key to `GROQ_API_KEY` in Settings)*"
+        "*(To enable generative completions, add your free key to `GROQ_API_KEY` in Settings)*"
     )
