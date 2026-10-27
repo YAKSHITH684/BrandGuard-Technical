@@ -17,7 +17,8 @@ import {
   UserCheck,
   AlertCircle,
   Menu,
-  X
+  X,
+  Mic
 } from "lucide-react";
 
 export default function AppShell({ children }) {
@@ -29,6 +30,7 @@ export default function AppShell({ children }) {
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Drafts", href: "/drafts", icon: FileText },
     { name: "New Draft", href: "/drafts/new", icon: FilePlus2 },
+    { name: "Voice Agent", href: "/voice", icon: Mic },
     { name: "Review Queue", href: "/reviews", icon: CheckCircle2, roles: ["brand_manager", "reviewer"] },
     { name: "Approved Sources", href: "/sources", icon: FolderGit2, roles: ["brand_manager"] },
     { name: "Insights", href: "/insights", icon: BarChart3, roles: ["brand_manager"] },

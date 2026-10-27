@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db
-from app.routers import auth, sources, drafts, findings, reviews, checks, insights, audit, chatbot
+from app.routers import auth, sources, drafts, findings, reviews, checks, insights, audit, chatbot, voice
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -67,7 +67,8 @@ all_routers = [
     checks.router,
     insights.router,
     audit.router,
-    chatbot.router
+    chatbot.router,
+    voice.router
 ]
 
 for router in all_routers:

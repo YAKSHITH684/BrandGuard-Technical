@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { api, getApiBase, setApiBase } from "../../services/api";
 import {
   MessageSquare,
@@ -18,9 +19,12 @@ import {
   Wifi,
   WifiOff,
   Volume2,
-  VolumeX
+  VolumeX,
+  Mic,
+  MicOff,
+  Languages
 } from "lucide-react";
-import { speakText, stopSpeech } from "../../utils/speech";
+import { speakText, stopSpeech, createSpeechRecognizer } from "../../utils/speech";
 
 export default function GroqChatBot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,13 +43,51 @@ export default function GroqChatBot() {
   const [customApiUrl, setCustomApiUrl] = useState("");
   const [configFeedback, setConfigFeedback] = useState(null);
   const [speakingMsgIdx, setSpeakingMsgIdx] = useState(null);
+  const [isListeningMic, setIsListeningMic] = useState(false);
   const messagesEndRef = useRef(null);
+  const chatRecognizerRef = useRef(null);
 
   useEffect(() => {
     return () => {
       stopSpeech();
+      if (chatRecognizerRef.current) {
+        try {
+          chatRecognizerRef.current.stop();
+        } catch (e) {}
+      }
     };
   }, []);
+
+  const handleToggleVoiceInput = () => {
+    if (isListeningMic) {
+      if (chatRecognizerRef.current) {
+        try {
+          chatRecognizerRef.current.stop();
+        } catch (e) {}
+      }
+      setIsListeningMic(false);
+      return;
+    }
+
+    try {
+      const rec = createSpeechRecognizer({
+        onStart: () => setIsListeningMic(true),
+        onEnd: () => setIsListeningMic(false),
+        onResult: (spoken) => {
+          if (spoken) {
+            setInput((prev) => (prev ? `${prev} ${spoken}` : spoken));
+          }
+        },
+        onError: () => setIsListeningMic(false)
+      });
+      if (rec) {
+        chatRecognizerRef.current = rec;
+        rec.start();
+      }
+    } catch (e) {
+      setIsListeningMic(false);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -205,6 +247,15 @@ export default function GroqChatBot() {
             </div>
 
             <div className="flex items-center space-x-1">
+              <Link
+                href="/voice"
+                onClick={() => setIsOpen(false)}
+                title="Launch Full Voice Agent & Audio Studio"
+                className="px-2 py-1 bg-emerald-600/60 hover:bg-emerald-500 text-white rounded-lg transition-colors flex items-center gap-1 text-[10px] font-bold shadow-2xs"
+              >
+                <Mic className="w-3.5 h-3.5 text-emerald-200" />
+                <span className="hidden sm:inline">Voice Agent</span>
+              </Link>
               <button
                 onClick={() => setShowConfig(!showConfig)}
                 title="Configure Backend API URL"
@@ -448,10 +499,26 @@ export default function GroqChatBot() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about brand rules or request copy rewrite..."
+                placeholder={
+                  isListeningMic
+                    ? "Listening... speak your question now..."
+                    : "Ask about brand rules or request copy rewrite..."
+                }
                 rows={2}
-                className="w-full text-xs p-2.5 pr-10 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                className="w-full text-xs p-2.5 pr-16 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
               />
+              <button
+                type="button"
+                onClick={handleToggleVoiceInput}
+                title={isListeningMic ? "Stop voice listening" : "Speak question (Voice Input)"}
+                className={`absolute right-9 bottom-2 p-1.5 rounded-lg transition-colors ${
+                  isListeningMic
+                    ? "bg-rose-600 text-white animate-pulse"
+                    : "text-slate-400 hover:text-emerald-700 hover:bg-slate-100"
+                }`}
+              >
+                {isListeningMic ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+              </button>
               <button
                 onClick={() => handleSend()}
                 disabled={!input.trim() || loading}

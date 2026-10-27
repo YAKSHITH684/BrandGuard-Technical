@@ -215,6 +215,23 @@ export const api = {
       body: JSON.stringify({ message, history }),
     }),
 
+  // Voice Agent & Audio Translation
+  voiceAgentChat: (data) =>
+    request("/voice/chat", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  translateAudioFile: (formData) =>
+    request("/voice/translate-audio", {
+      method: "POST",
+      body: formData,
+    }),
+  translateText: (data) =>
+    request("/voice/translate-text", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
   // Standalone Checks
   checkContrast: (foreground, background, font_size = "normal") =>
     request("/checks/contrast", {

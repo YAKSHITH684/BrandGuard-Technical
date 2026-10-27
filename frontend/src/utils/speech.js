@@ -7,6 +7,21 @@
  *    and zero-exposure privacy enforcement (never used on visual assets or redacted content).
  */
 
+export const SUPPORTED_LANGUAGES = [
+  { code: "en-US", name: "English (US)", short: "EN" },
+  { code: "es-ES", name: "Spanish (Español)", short: "ES" },
+  { code: "fr-FR", name: "French (Français)", short: "FR" },
+  { code: "de-DE", name: "German (Deutsch)", short: "DE" },
+  { code: "hi-IN", name: "Hindi (हिन्दी)", short: "HI" },
+  { code: "te-IN", name: "Telugu (తెలుగు)", short: "TE" },
+  { code: "ta-IN", name: "Tamil (தமிழ்)", short: "TA" },
+  { code: "ja-JP", name: "Japanese (日本語)", short: "JA" },
+  { code: "zh-CN", name: "Chinese (Mandarin)", short: "ZH" },
+  { code: "ar-SA", name: "Arabic (العربية)", short: "AR" },
+  { code: "pt-BR", name: "Portuguese (Português)", short: "PT" },
+  { code: "it-IT", name: "Italian (Italiano)", short: "IT" }
+];
+
 export function isSpeechSynthesisSupported() {
   return typeof window !== "undefined" && "speechSynthesis" in window;
 }
@@ -20,7 +35,7 @@ export function isSpeechRecognitionSupported() {
 
 let activeUtterance = null;
 
-export function speakText(text, { onStart, onEnd, onError, rate = 1.0, pitch = 1.0 } = {}) {
+export function speakText(text, { onStart, onEnd, onError, rate = 1.0, pitch = 1.0, lang = "en-US" } = {}) {
   if (!isSpeechSynthesisSupported()) {
     if (onError) onError(new Error("Text-to-speech is not supported by your browser."));
     return false;
@@ -38,20 +53,22 @@ export function speakText(text, { onStart, onEnd, onError, rate = 1.0, pitch = 1
   const utterance = new SpeechSynthesisUtterance(text.trim());
   utterance.rate = rate;
   utterance.pitch = pitch;
+  utterance.lang = lang;
 
-  // Try to pick a natural English voice if available
+  // Try to pick a natural voice for the target language if available
   try {
     const voices = window.speechSynthesis.getVoices();
+    const prefix = (lang || "en").split("-")[0].toLowerCase();
     const naturalVoice =
       voices.find(
         (v) =>
-          v.lang.startsWith("en") &&
+          (v.lang.toLowerCase() === lang.toLowerCase() || v.lang.toLowerCase().startsWith(prefix)) &&
           (v.name.includes("Natural") ||
             v.name.includes("Enhanced") ||
             v.name.includes("Google") ||
             v.name.includes("Microsoft") ||
             v.name.includes("Samantha"))
-      ) || voices.find((v) => v.lang.startsWith("en"));
+      ) || voices.find((v) => v.lang.toLowerCase() === lang.toLowerCase() || v.lang.toLowerCase().startsWith(prefix));
 
     if (naturalVoice) {
       utterance.voice = naturalVoice;
@@ -145,7 +162,7 @@ export function setDictationOptIn(optIn) {
 /**
  * Creates and starts a SpeechRecognition instance for draft dictation.
  */
-export function createSpeechRecognizer({ onResult, onStart, onEnd, onError }) {
+export function createSpeechRecognizer({ onResult, onStart, onEnd, onError, lang = "en-US" }) {
   if (!isSpeechRecognitionSupported()) {
     if (onError) onError(new Error("Speech recognition is not supported in this browser."));
     return null;
@@ -156,7 +173,7 @@ export function createSpeechRecognizer({ onResult, onStart, onEnd, onError }) {
 
   recognition.continuous = true;
   recognition.interimResults = false;
-  recognition.lang = "en-US";
+  recognition.lang = lang;
 
   recognition.onstart = () => {
     if (onStart) onStart();

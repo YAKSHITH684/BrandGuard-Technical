@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import AppShell from "../../components/AppShell/AppShell";
 import VoiceDictation from "../../components/VoiceDictation/VoiceDictation";
@@ -30,6 +30,17 @@ export default function NewDraftPage() {
 
   const isSubmittingRef = useRef(false);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const importedVoice = sessionStorage.getItem("brandguard_imported_voice_draft");
+      if (importedVoice) {
+        setContent(importedVoice);
+        setTitle("Spoken Voice Draft");
+        sessionStorage.removeItem("brandguard_imported_voice_draft");
+      }
+    }
+  }, []);
 
   // Accessibility & Color pair states
   const [enableColorCheck, setEnableColorCheck] = useState(false);
