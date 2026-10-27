@@ -11,11 +11,26 @@ class ColorPair(BaseModel):
     label: Optional[str] = "Primary Text"
     font_size: Optional[str] = "normal"  # normal | large
 
+class DraftImageInput(BaseModel):
+    name: str
+    url: Optional[str] = None
+    alt_text: Optional[str] = None
+    agency: Optional[str] = None
+    colors: Optional[List[str]] = None
+    logo_identifier: Optional[str] = None
+    aspect_ratio_skew: Optional[float] = 0.0
+    contrast_ratio: Optional[float] = None
+    has_face: Optional[bool] = False
+    has_license_plate: Optional[bool] = False
+    ocr_text: Optional[str] = None
+
 class DraftCreate(BaseModel):
     title: str
     content: str
     color_pairs: Optional[List[ColorPair]] = None
     alt_texts: Optional[List[Dict[str, str]]] = None  # [{"image_name": "hero.png", "alt_text": "..."}]
+    images: Optional[List[DraftImageInput]] = None
+    agency: Optional[str] = None
 
 class DraftVersionOut(BaseModel):
     id: str
@@ -23,6 +38,7 @@ class DraftVersionOut(BaseModel):
     version_no: int
     content: str
     redacted_content: Optional[str] = None
+    images_data: Optional[List[Dict[str, Any]]] = None
     created_at: datetime
     findings: Optional[List[FindingOut]] = []
 

@@ -362,6 +362,91 @@ export default function DraftDetailPage() {
                   </div>
                 </div>
 
+                {/* Multimodal Attached Visual Media Panel (Improvements 1, 2, 3) */}
+                {draft.current_version_data?.images_data && draft.current_version_data.images_data.length > 0 && (
+                  <div className="mb-4 bg-white rounded-xl border border-slate-200 p-4 shadow-xs space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-xs">
+                          Multimodal Assets ({draft.current_version_data.images_data.length})
+                        </span>
+                        <span className="text-xs font-semibold text-slate-800">
+                          Visual Media & OCR ClaimCheck
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                        🔒 Privacy Shield Active
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {draft.current_version_data.images_data.map((img, i) => (
+                        <div key={i} className="rounded-xl border border-slate-200 bg-slate-50 overflow-hidden flex flex-col justify-between">
+                          {/* Image preview with blur */}
+                          {img.url ? (
+                            <div className="relative aspect-video bg-slate-900 border-b border-slate-200 overflow-hidden group">
+                              <img
+                                src={img.url}
+                                alt={img.alt_text || img.name}
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute top-2 left-2 px-2 py-0.5 bg-slate-900/80 backdrop-blur text-white text-[10px] font-mono rounded">
+                                {img.name}
+                              </div>
+                              {img.redaction_applied && (
+                                <div className="absolute top-2 right-2 px-2 py-0.5 bg-emerald-600/90 backdrop-blur text-white text-[10px] font-semibold rounded flex items-center gap-1">
+                                  🔒 Faces & PII Masked
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="p-4 bg-slate-900 text-white flex items-center justify-between text-xs font-mono">
+                              <span>🖼️ {img.name}</span>
+                              <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-emerald-400">
+                                Protected
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="p-3 space-y-2 text-xs">
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold text-slate-700">Source: {img.agency || "Agency"}</span>
+                              {img.contrast_ratio && (
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${img.contrast_ratio >= 4.5 ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                                  {img.contrast_ratio}:1 Contrast
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Privacy Redactions */}
+                            {img.blurred_elements && img.blurred_elements.length > 0 && (
+                              <div className="p-2 bg-emerald-50 rounded border border-emerald-100 text-[10px] text-emerald-950 space-y-0.5">
+                                <span className="font-bold block uppercase tracking-wider text-emerald-800 text-[9px]">
+                                  Irreversible Redactions Applied:
+                                </span>
+                                {img.blurred_elements.map((b, bi) => (
+                                  <div key={bi} className="flex items-center gap-1 text-[10px]">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    <span>{b.label}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Extracted OCR text summary */}
+                            {img.extracted_text && (
+                              <div className="p-2 bg-white rounded border border-slate-200 text-[10px] text-slate-600 font-mono">
+                                <span className="font-bold block text-slate-400 text-[9px] uppercase">OCR Extracted Copy:</span>
+                                <p className="truncate" title={img.extracted_text}>"{img.extracted_text}"</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <DraftViewer
                   content={draft.current_version_data?.content}
                   findings={findings}

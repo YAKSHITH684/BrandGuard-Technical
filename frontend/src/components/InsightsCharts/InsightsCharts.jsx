@@ -7,7 +7,11 @@ import {
   Clock,
   HelpCircle,
   ShieldAlert,
-  ArrowUpRight
+  ArrowUpRight,
+  Palette,
+  Image as ImageIcon,
+  Layers,
+  Sparkles
 } from "lucide-react";
 
 export default function InsightsCharts({ summary }) {
@@ -151,6 +155,89 @@ export default function InsightsCharts({ summary }) {
           </div>
         </div>
       </div>
+
+      {/* Improvement 2: Visual Violations & Image Findings Dashboard */}
+      {summary.visual_insights && (
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Palette className="w-4 h-4 text-purple-600" />
+                Visual Brand Violations & Image Governance (Improvement 2)
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Aggregates image findings across all reviewed drafts: off-palette colors, wrong or distorted logos, low contrast, and missing alt text.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Visual Compliance</span>
+                <span className="text-lg font-bold text-emerald-600">{summary.visual_insights.visual_compliance_score}%</span>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Visual Flags</span>
+                <span className="text-lg font-bold text-slate-900">{summary.visual_insights.total_visual_violations}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-1">
+            {/* Left Column: Visual Violations Breakdown */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5 text-slate-500" />
+                Violations Breakdown by Visual Check
+              </h4>
+              <div className="space-y-2.5">
+                {summary.visual_insights.breakdown?.map((b, bi) => (
+                  <div key={bi} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-slate-900">{b.violation_type}</span>
+                      <span className="font-bold px-2 py-0.5 rounded-full text-[10px] bg-purple-100 text-purple-800">
+                        {b.count} flag{b.count === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 italic truncate" title={b.rule_sample}>
+                      {b.rule_sample}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Column: Recurring Agency Mistakes & Brand Manager Action Tracker */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-indigo-600" />
+                Recurring Agency Mistakes & Governance Actions
+              </h4>
+              <div className="space-y-2.5">
+                {summary.visual_insights.recurring_mistakes?.map((rm, rmi) => (
+                  <div key={rmi} className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-900">{rm.agency_or_asset}</span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-rose-100 text-rose-800">
+                        {rm.frequency} Recurring Flags
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-700">
+                      <strong>Pattern:</strong> {rm.violation_type}
+                    </div>
+                    <div className="p-2 bg-white rounded-lg border border-indigo-200/60 text-[11px] text-indigo-950 flex items-center gap-1.5 shadow-2xs">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                      <div>
+                        <span className="font-bold text-[10px] uppercase text-indigo-800 block">Recommended Action:</span>
+                        <span>{rm.recommendation}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Most-Overridden Rules: Guideline Feedback Loop */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">

@@ -59,6 +59,8 @@ export default function AuditPage() {
             "",
             "draft_created",
             "findings_generated",
+            "image_redacted",
+            "image_claims_analyzed",
             "finding_action",
             "external_model_call",
             "draft_approved",

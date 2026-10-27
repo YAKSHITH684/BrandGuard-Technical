@@ -156,7 +156,72 @@ def run_tests():
     assert "Timestamp,Event Type" in res.text
     print(f"[PASS] 17. Audit CSV Export: Successfully generated {len(res.text)} bytes of RFC 4180 CSV")
 
-    print("\nALL 17 BACKEND TESTS PASSED WITH 100% SUCCESS!")
+    # 18. Multimodal Draft Submission & OCR ClaimCheck (Improvement 1)
+    res_multimodal = client.post("/api/drafts", headers=headers, json={
+        "title": "E2E Test: Multimodal Cloud Banner & Testimonial",
+        "content": "# Live Multimodal Test\n\n![Campaign Graphic](test_banner.png)\n\nReview verified performance.",
+        "images": [
+            {
+                "name": "test_banner.png",
+                "agency": "Starlight Media",
+                "alt_text": "banner",
+                "colors": ["#FF007F", "#10B981"],
+                "logo_identifier": "2021 Acme Circular Crest",
+                "aspect_ratio_skew": 0.20,
+                "contrast_ratio": 3.1,
+                "has_face": True,
+                "ocr_text": "Acme guarantees 99.999% uptime with zero downtime. Contact alex.vance@acmecorp.internal"
+            }
+        ]
+    })
+    assert res_multimodal.status_code == 200, f"Multimodal draft submission failed: {res_multimodal.text}"
+    multi_data = res_multimodal.json()
+    multi_findings = multi_data["current_version_data"]["findings"]
+    
+    # Verify ClaimCheck caught the unverified image claim via OCR
+    ocr_claim_findings = [f for f in multi_findings if f["origin"] == "image_ocr"]
+    assert len(ocr_claim_findings) > 0, "OCR claim checking failed to detect image claims"
+    unsupported_claim = next((f for f in ocr_claim_findings if f["claim_label"] == "unsupported"), None)
+    assert unsupported_claim is not None, "ClaimCheck did not flag unsupported 99.999% claim"
+    assert "Fact Sheet" in unsupported_claim["source_excerpt"]
+    print(f"[PASS] 18. Improvement 1 (ClaimCheck OCR): Extracted image claim flagged as '{unsupported_claim['claim_label']}' with Fact Sheet citation")
+
+    # 19. Visual Violations & Insights Aggregation (Improvement 2)
+    visual_findings = [f for f in multi_findings if f["category"] == "visual"]
+    assert len(visual_findings) >= 3, f"Expected visual violations, found {len(visual_findings)}"
+    
+    # Check off-palette, logo, and contrast rules
+    rules_present = [f["rule"] for f in visual_findings]
+    assert any("Off-Palette" in r for r in rules_present), "Off-palette color check failed"
+    assert any("Logo" in r for r in rules_present), "Deprecated logo check failed"
+    assert any("Contrast" in r for r in rules_present), "Graphic contrast check failed"
+    
+    # Check Insights aggregation
+    res_insights = client.get("/api/insights/summary", headers=headers)
+    assert res_insights.status_code == 200
+    insights_data = res_insights.json()
+    assert "visual_insights" in insights_data
+    assert insights_data["visual_insights"]["total_visual_violations"] > 0
+    assert len(insights_data["visual_insights"]["recurring_mistakes"]) > 0
+    print(f"[PASS] 19. Improvement 2 (Insights Visual Violations): {len(visual_findings)} visual violations detected & aggregated into Insights dashboard")
+
+    # 20. Privacy Layer & Audit Trail (Improvement 3)
+    # Check that privacy redaction was applied to the image (face + confidential text)
+    img_data = multi_data["current_version_data"]["images_data"]
+    assert len(img_data) > 0
+    assert img_data[0]["redaction_applied"] is True
+    assert len(img_data[0]["blurred_elements"]) >= 2
+    
+    # Check audit log for image redaction event
+    res_audit_check = client.get("/api/audit", headers=headers)
+    assert res_audit_check.status_code == 200
+    all_audit_logs = res_audit_check.json()
+    redacted_events = [l for l in all_audit_logs if l["event_type"] == "image_redacted"]
+    assert len(redacted_events) > 0, "No image_redacted events found in audit log"
+    assert redacted_events[0]["log_metadata"]["redaction_applied"] is True
+    print(f"[PASS] 20. Improvement 3 (Image Privacy Layer): Faces and confidential text blurred with immutable audit trail")
+
+    print("\nALL 20 BACKEND TESTS PASSED WITH 100% SUCCESS!")
 
 if __name__ == "__main__":
     run_tests()

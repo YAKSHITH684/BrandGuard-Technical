@@ -22,24 +22,28 @@ Every finding is grounded in approved workspace sources (guidelines, dated fact 
    - 384-dimensional semantic embeddings stored in pgvector (PostgreSQL) with SQLite fallback
    - Structured JSON review via Groq LLM (`llama-3.3-70b-versatile`) citing exact source chunk IDs
 
-3. **ClaimCheck (Factual Freshness)**
-   - Labels factual claims as **Supported**, **Outdated**, or **Unsupported**
-   - Flags expired benchmarks when `expires_on` has passed
+3. **ClaimCheck (Text and Images via OCR)**
+   - Labels factual and promotional claims as **Supported**, **Outdated**, or **Unsupported** citing exact fact sheet chunks and confidence
+   - Extracts claims inside graphics (banners, infographics, slide screenshots) via OCR
+   - Provides unified, consistent verdicts across both written copy and embedded graphics
 
-4. **Privacy Layer**
-   - Client-side redaction detects emails, phone numbers, credit cards, national IDs, and API keys before invoking external models
+4. **Privacy Layer (Covering Images & Text)**
+   - Pre-flight redaction of PII, secrets, and API keys before external model transmission
+   - Detects and irreversibly blurs human faces, vehicle license plates, and visible confidential screen text in images
+   - Discloses AI involvement on every finding with full audit trail logging
 
 5. **Human-in-the-Loop Workflow & Approvals**
    - Lifecycle: `DRAFT` → `IN_REVIEW` → `CHANGES_REQUESTED` → `DISPUTED` → `APPROVED`
    - Version diff viewer highlights changes between revisions
    - Role-based approval queue (Sensitive claims require Legal Reviewer approval)
 
-6. **Guideline Feedback Loop (Insights)**
+6. **Guideline Feedback Loop (Insights & Visual Violations)**
    - Tracks most-overridden rules (highest dispute/reject rate) to flag unclear guidelines
-   - Top violations by category and claim integrity distribution
+   - Aggregates visual brand violations: off-palette colors, wrong/distorted logos, low contrast, and missing alt text
+   - Pinpoints recurring agency mistakes (e.g. repeated use of outdated logos) with actionable brand recommendations
 
 7. **Immutable Audit Trail**
-   - Append-only event log exportable as RFC 4180 CSV
+   - Append-only event log covering image redactions, OCR claim analyses, and approval decisions, exportable as RFC 4180 CSV
 
 ---
 

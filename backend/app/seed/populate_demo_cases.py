@@ -254,6 +254,71 @@ def ensure_seed_data():
         db.add(appr)
         db.commit()
 
+    # Case E: Multimodal Visual Campaign (ClaimCheck OCR, Visual Brand Violations, Image Privacy Redaction)
+    d5 = db.query(Draft).filter(Draft.title == "Q4 Multimodal Campaign: Infographic & Video Banner").first()
+    if not d5:
+        d5 = Draft(
+            workspace_id=ws.id,
+            author_id=creator.id,
+            title="Q4 Multimodal Campaign: Infographic & Video Banner",
+            status="IN_REVIEW",
+            current_version=1
+        )
+        db.add(d5)
+        db.commit()
+        db.refresh(d5)
+
+        v5 = DraftVersion(
+            draft_id=d5.id,
+            version_no=1,
+            content=(
+                "# Acme Enterprise Cloud Acceleration: 2026 Visual Campaign\n\n"
+                "Accelerate your data infrastructure with next-generation event replication.\n\n"
+                "![Q4 Enterprise Performance Infographic](infographic_banner.png)\n\n"
+                "![Customer Success Testimonial Photo](alex_vance_photo.png)\n\n"
+                "Explore our high-throughput architecture documentation to get started."
+            )
+        )
+        db.add(v5)
+        db.commit()
+        db.refresh(v5)
+
+        sample_images = [
+            {
+                "name": "infographic_banner.png",
+                "agency": "Starlight Media",
+                "alt_text": "banner",  # Generic alt text
+                "colors": ["#FF007F", "#10B981"],  # Off-palette neon magenta
+                "logo_identifier": "2021 Acme Circular Crest",  # Deprecated logo
+                "aspect_ratio_skew": 0.22,  # Skewed
+                "contrast_ratio": 3.2,  # Low contrast
+                "has_face": False,
+                "has_license_plate": False,
+                "ocr_text": "Acme guarantees 99.999% uptime with zero downtime. Rated #1 Cloud Platform in 2023 Benchmark study. Contact alex.vance@acmecorp.internal"
+            },
+            {
+                "name": "alex_vance_photo.png",
+                "agency": "Internal Creative Studio",
+                "alt_text": "Lead enterprise architect customer testimonial portrait",
+                "colors": ["#10B981", "#0F172A"],
+                "logo_identifier": "2025 Acme Geometric Wordmark",
+                "aspect_ratio_skew": 0.0,
+                "contrast_ratio": 7.4,
+                "has_face": True,  # Triggers face blurring
+                "has_license_plate": False,
+                "ocr_text": "Alex Vance — Lead Enterprise Architect, internal employee workstation #EMP-8821 with API key gsk_live_secret_key_88921."
+            }
+        ]
+
+        run_brandguard_review(
+            db=db,
+            workspace_id=ws.id,
+            draft_version_id=v5.id,
+            raw_content=v5.content,
+            actor_id=creator.id,
+            images=sample_images
+        )
+
     db.close()
     print("Demo test cases successfully populated!")
 

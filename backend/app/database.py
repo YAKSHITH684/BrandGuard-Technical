@@ -23,6 +23,16 @@ def init_db():
             conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
             conn.commit()
     Base.metadata.create_all(bind=engine)
+    with engine.connect() as conn:
+        try:
+            if is_sqlite:
+                conn.execute(text("ALTER TABLE draft_versions ADD COLUMN images_data JSON;"))
+                conn.commit()
+            else:
+                conn.execute(text("ALTER TABLE draft_versions ADD COLUMN IF NOT EXISTS images_data JSON;"))
+                conn.commit()
+        except Exception:
+            pass
 
 def get_db():
     db = SessionLocal()

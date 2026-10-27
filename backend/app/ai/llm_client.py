@@ -38,31 +38,11 @@ def clean_json_response(raw_text: str) -> str:
         raw = raw[:-3]
     return raw.strip()
 
-_cached_groq_model = None
+_cached_groq_model = "llama-3.3-70b-versatile"
 
 def get_best_groq_model(client) -> str:
     global _cached_groq_model
-    if _cached_groq_model:
-        return _cached_groq_model
-    try:
-        models = [m.id for m in client.models.list().data]
-        priority = [
-            "llama-3.3-70b-versatile",
-            "llama-3.1-70b-versatile",
-            "qwen/qwen3.8-27b",
-            "openai/gpt-oss-120b",
-            "openai/gpt-oss-20b"
-        ]
-        for p in priority:
-            if p in models:
-                _cached_groq_model = p
-                return p
-        if models:
-            _cached_groq_model = models[0]
-            return models[0]
-    except Exception:
-        pass
-    return "qwen/qwen3.8-27b"
+    return _cached_groq_model
 
 def run_llm_review(
     draft_text: str,
@@ -76,7 +56,14 @@ def run_llm_review(
     if not settings.GROQ_API_KEY or not groq_available:
         return [], "unavailable"
 
-    client = Groq(api_key=settings.GROQ_API_KEY)
+    # Quick preflight check to avoid blocking on DNS timeout when offline or in sandbox
+    try:
+        import socket
+        socket.gethostbyname("api.groq.com")
+    except Exception:
+        return [], "unavailable"
+
+    client = Groq(api_key=settings.GROQ_API_KEY, timeout=3.0)
     user_prompt = build_review_user_prompt(draft_text, retrieved_chunks)
     model_name = get_best_groq_model(client)
 

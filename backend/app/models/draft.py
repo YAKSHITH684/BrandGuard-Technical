@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Integer, Text, DateTime, ForeignKey
+from sqlalchemy import Column, String, Integer, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -31,6 +31,7 @@ class DraftVersion(Base):
     version_no = Column(Integer, nullable=False)
     content = Column(Text, nullable=False)
     redacted_content = Column(Text, nullable=True)
+    images_data = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     draft = relationship("Draft", back_populates="versions")

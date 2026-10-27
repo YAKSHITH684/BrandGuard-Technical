@@ -44,6 +44,7 @@ export default function FindingCard({
     claim: "Claim Policy",
     accessibility: "Accessibility / WCAG",
     privacy: "Privacy & PII",
+    visual: "Visual Brand",
   };
 
   const handleAccept = async () => {
@@ -93,6 +94,16 @@ export default function FindingCard({
           <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
             {categoryLabels[finding.category] || finding.category}
           </span>
+          {finding.origin === "image_ocr" && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800">
+              🖼️ Image Claim (OCR)
+            </span>
+          )}
+          {finding.origin === "visual_check" && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-800">
+              🎨 Visual Brand Check
+            </span>
+          )}
           <span
             className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
               finding.severity === "high"
@@ -163,14 +174,17 @@ export default function FindingCard({
 
       {/* AI Disclosure Tag */}
       {finding.ai_disclosure && (
-        <div className="flex items-center justify-between text-[10px] text-slate-500 mb-3 pt-2 border-t border-slate-100">
+        <div className="flex flex-wrap items-center justify-between gap-1 text-[10px] text-slate-500 mb-3 pt-2 border-t border-slate-100">
           <span className="flex items-center gap-1">
             <Cpu className="w-3 h-3 text-slate-400" />
-            Model: <strong className="text-slate-700">{finding.ai_disclosure.model}</strong> via {finding.ai_disclosure.provider}
+            Model: <strong className="text-slate-700">{finding.ai_disclosure.model}</strong> ({finding.ai_disclosure.provider})
+            {finding.ai_disclosure.image_source && (
+              <span className="text-slate-400 font-mono ml-1">• Asset: {finding.ai_disclosure.image_source}</span>
+            )}
           </span>
           {finding.ai_disclosure.redaction_applied && (
-            <span className="bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-semibold text-[9px]">
-              PII Redacted
+            <span className="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-semibold text-[9px] flex items-center gap-0.5">
+              🔒 Privacy Shield: Face & PII Masked
             </span>
           )}
         </div>

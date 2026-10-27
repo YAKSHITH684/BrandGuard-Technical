@@ -77,7 +77,8 @@ def create_draft_and_review(
         raw_content=req.content,
         actor_id=current_user.id,
         color_pairs=req.color_pairs,
-        alt_texts=req.alt_texts
+        alt_texts=req.alt_texts,
+        images=[img.model_dump() for img in req.images] if req.images else None
     )
 
     log_audit_event(
@@ -185,7 +186,8 @@ def create_draft_version(
         raw_content=req.content,
         actor_id=current_user.id,
         color_pairs=req.color_pairs,
-        alt_texts=req.alt_texts
+        alt_texts=req.alt_texts,
+        images=[img.model_dump() for img in req.images] if req.images else None
     )
 
     log_audit_event(
