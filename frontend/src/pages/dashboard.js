@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import AppShell from "../components/AppShell/AppShell";
+import MultimodalGovernanceSection from "../components/MultimodalGovernanceSection/MultimodalGovernanceSection";
 import { useAuth } from "../store/auth";
 import { api } from "../services/api";
 import {
@@ -134,6 +135,9 @@ export default function DashboardPage() {
             <div className="text-[11px] text-slate-500 mt-1">In approval queue</div>
           </div>
         </div>
+
+        {/* Multimodal Image Governance Console */}
+        <MultimodalGovernanceSection drafts={drafts} />
 
         {/* Recent Drafts List */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">

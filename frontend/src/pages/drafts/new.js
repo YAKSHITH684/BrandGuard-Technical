@@ -42,6 +42,12 @@ export default function NewDraftPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (router.query?.type === "multimodal" || router.query?.load_preset) {
+      handleLoadSample("multimodal");
+    }
+  }, [router.query]);
+
   // Accessibility & Color pair states
   const [enableColorCheck, setEnableColorCheck] = useState(false);
   const [foreground, setForeground] = useState("#9CA3AF");

@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 
 class ContrastCheckRequest(BaseModel):
@@ -28,3 +28,31 @@ class ReadabilityCheckResponse(BaseModel):
     reading_level: str
     target_ease: float
     passes_target: bool
+
+class MultimodalCheckRequest(BaseModel):
+    name: Optional[str] = "visual_asset.png"
+    agency: Optional[str] = "Internal Creative Studio"
+    url: Optional[str] = None
+    alt_text: Optional[str] = None
+    colors: Optional[List[str]] = None
+    logo_identifier: Optional[str] = None
+    aspect_ratio_skew: Optional[float] = 0.0
+    contrast_ratio: Optional[float] = None
+    has_face: Optional[bool] = False
+    has_license_plate: Optional[bool] = False
+    ocr_text: Optional[str] = None
+
+class MultimodalCheckResponse(BaseModel):
+    image_name: str
+    agency: Optional[str] = None
+    redacted_url: Optional[str] = None
+    redaction_applied: bool
+    blurred_elements: List[Dict[str, Any]] = []
+    audit_meta: Dict[str, Any] = {}
+    ocr_text: str = ""
+    extracted_claims: List[str] = []
+    claim_verdicts: List[Dict[str, Any]] = []
+    visual_findings: List[Dict[str, Any]] = []
+    visual_compliance_score: float = 100.0
+    summary: Dict[str, Any] = {}
+

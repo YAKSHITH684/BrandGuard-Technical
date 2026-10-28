@@ -243,6 +243,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ text, target_ease }),
     }),
+  checkMultimodal: (data) =>
+    request("/checks/multimodal", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 
   // Insights
   getInsightsSummary: () => request("/insights/summary"),

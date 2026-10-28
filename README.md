@@ -23,6 +23,7 @@ Every finding is grounded in approved workspace sources (guidelines, dated fact 
    - Structured JSON review via Groq LLM (`llama-3.3-70b-versatile`) citing exact source chunk IDs
 
 3. **ClaimCheck (Text and Images via OCR)**
+   - Featured in the **Dashboard Section** with interactive live scanner and demo presets
    - Labels factual and promotional claims as **Supported**, **Outdated**, or **Unsupported** citing exact fact sheet chunks and confidence
    - Extracts claims inside graphics (banners, infographics, slide screenshots) via OCR
    - Provides unified, consistent verdicts across both written copy and embedded graphics
@@ -30,6 +31,7 @@ Every finding is grounded in approved workspace sources (guidelines, dated fact 
 4. **Privacy Layer (Covering Images & Text)**
    - Pre-flight redaction of PII, secrets, and API keys before external model transmission
    - Detects and irreversibly blurs human faces, vehicle license plates, and visible confidential screen text in images
+   - Zero-Exposure Visual Shield directly visible and testable in the **Dashboard Governance Console**
    - Discloses AI involvement on every finding with full audit trail logging
 
 5. **Human-in-the-Loop Workflow & Approvals**
