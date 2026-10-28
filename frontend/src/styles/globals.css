@@ -7,10 +7,17 @@
   --background-rgb: 248, 250, 252;
 }
 
+.dark {
+  --foreground-rgb: 241, 245, 249;
+  --background-rgb: 11, 15, 25;
+  color-scheme: dark;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-rgb));
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Custom scrollbars */
@@ -29,6 +36,13 @@ body {
   background: #94a3b8;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
 /* Span highlight styling */
 .span-highlight-high {
   background-color: #fee2e2;
@@ -39,6 +53,15 @@ body {
 }
 .span-highlight-high:hover {
   background-color: #fecaca;
+}
+
+.dark .span-highlight-high {
+  background-color: rgba(239, 68, 68, 0.25);
+  border-bottom: 2px solid #f87171;
+  color: #fca5a5;
+}
+.dark .span-highlight-high:hover {
+  background-color: rgba(239, 68, 68, 0.35);
 }
 
 .span-highlight-medium {
@@ -52,6 +75,15 @@ body {
   background-color: #fde68a;
 }
 
+.dark .span-highlight-medium {
+  background-color: rgba(245, 158, 11, 0.25);
+  border-bottom: 2px solid #fbbf24;
+  color: #fde68a;
+}
+.dark .span-highlight-medium:hover {
+  background-color: rgba(245, 158, 11, 0.35);
+}
+
 .span-highlight-low {
   background-color: #e0f2fe;
   border-bottom: 2px solid #0284c7;
@@ -63,7 +95,97 @@ body {
   background-color: #bae6fd;
 }
 
+.dark .span-highlight-low {
+  background-color: rgba(2, 132, 199, 0.25);
+  border-bottom: 2px solid #38bdf8;
+  color: #bae6fd;
+}
+.dark .span-highlight-low:hover {
+  background-color: rgba(2, 132, 199, 0.35);
+}
+
 .span-highlight-active {
   outline: 2px solid #059669;
   outline-offset: 1px;
+}
+
+.dark .span-highlight-active {
+  outline: 2px solid #34d399;
+  outline-offset: 1px;
+}
+
+/* Comprehensive Dark Mode Fallbacks for legacy/common utility classes */
+.dark body {
+  background-color: #0b0f19;
+  color: #f1f5f9;
+}
+
+.dark .bg-white {
+  background-color: #111827;
+}
+
+.dark .bg-slate-50 {
+  background-color: #0f172a;
+}
+
+.dark .bg-slate-100 {
+  background-color: #1e293b;
+}
+
+.dark .border-slate-200,
+.dark .border-slate-300 {
+  border-color: #1f2937;
+}
+
+.dark .border-slate-100 {
+  border-color: #1e293b;
+}
+
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1f2937;
+}
+
+.dark .text-slate-900,
+.dark .text-slate-800 {
+  color: #f8fafc;
+}
+
+.dark .text-slate-700 {
+  color: #e2e8f0;
+}
+
+.dark .text-slate-600 {
+  color: #cbd5e1;
+}
+
+.dark .text-slate-500 {
+  color: #94a3b8;
+}
+
+.dark .text-slate-400 {
+  color: #64748b;
+}
+
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.dark textarea,
+.dark select {
+  background-color: #0f172a;
+  border-color: #334155;
+  color: #f8fafc;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #10b981;
+}
+
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-50\/70:hover {
+  background-color: rgba(30, 41, 59, 0.5) !important;
+}
+
+.dark .hover\:bg-slate-100:hover {
+  background-color: #1e293b !important;
 }

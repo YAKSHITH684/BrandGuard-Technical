@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useAuth } from "../store/auth";
 import { api } from "../services/api";
+import ThemeToggle from "../components/ThemeToggle/ThemeToggle";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -104,6 +105,8 @@ export default function LandingPage() {
               {backendReady ? "Cloud Online (Fast)" : "Connecting..."}
             </span>
           </div>
+
+          <ThemeToggle />
 
           <Link
             href="/login"

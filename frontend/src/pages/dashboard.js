@@ -50,12 +50,12 @@ export default function DashboardPage() {
   }, [user, authLoading, router]);
 
   const statusColors = {
-    DRAFT: "bg-slate-100 text-slate-700 border-slate-200",
-    IN_REVIEW: "bg-blue-100 text-blue-800 border-blue-200",
-    CHANGES_REQUESTED: "bg-amber-100 text-amber-800 border-amber-200",
-    DISPUTED: "bg-purple-100 text-purple-800 border-purple-200",
-    APPROVED: "bg-emerald-100 text-emerald-800 border-emerald-200",
-    REJECTED: "bg-rose-100 text-rose-800 border-rose-200",
+    DRAFT: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700",
+    IN_REVIEW: "bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800",
+    CHANGES_REQUESTED: "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800",
+    DISPUTED: "bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800",
+    APPROVED: "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
+    REJECTED: "bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800",
   };
 
   const approvedCount = drafts.filter((d) => d.status === "APPROVED").length;
@@ -103,36 +103,36 @@ export default function DashboardPage() {
 
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
               Active Drafts
             </div>
-            <div className="text-2xl font-bold text-slate-900">{drafts.length}</div>
-            <div className="text-[11px] text-slate-500 mt-1">In current workspace</div>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">{drafts.length}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">In current workspace</div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
               In Review
             </div>
-            <div className="text-2xl font-bold text-blue-600">{inReviewCount}</div>
-            <div className="text-[11px] text-slate-500 mt-1">Awaiting manager/legal</div>
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{inReviewCount}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Awaiting manager/legal</div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
               Approved Content
             </div>
-            <div className="text-2xl font-bold text-emerald-600">{approvedCount}</div>
-            <div className="text-[11px] text-slate-500 mt-1">Cleared for publication</div>
+            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{approvedCount}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Cleared for publication</div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
               Pending Actions
             </div>
-            <div className="text-2xl font-bold text-amber-600">{queue.length}</div>
-            <div className="text-[11px] text-slate-500 mt-1">In approval queue</div>
+            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{queue.length}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">In approval queue</div>
           </div>
         </div>
 
@@ -140,17 +140,17 @@ export default function DashboardPage() {
         <MultimodalGovernanceSection drafts={drafts} />
 
         {/* Recent Drafts List */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base font-bold text-slate-900">Workspace Content Drafts</h2>
-              <p className="text-xs text-slate-500">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Workspace Content Drafts</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Track compliance status, version history, and explainable findings.
               </p>
             </div>
             <Link
               href="/drafts"
-              className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+              className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center gap-1"
             >
               View all drafts
               <ArrowRight className="w-3.5 h-3.5" />
@@ -158,30 +158,30 @@ export default function DashboardPage() {
           </div>
 
           {loading ? (
-            <div className="p-8 text-center text-slate-500 text-xs flex flex-col items-center justify-center gap-2">
+            <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-xs flex flex-col items-center justify-center gap-2">
               <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-              <span className="font-medium text-slate-700">Loading workspace drafts...</span>
+              <span className="font-medium text-slate-700 dark:text-slate-300">Loading workspace drafts...</span>
               <span className="text-[11px] text-slate-400">Connecting to cloud governance engine</span>
             </div>
           ) : drafts.length === 0 ? (
-            <div className="text-center py-10 border border-dashed border-slate-200 rounded-xl">
+            <div className="text-center py-10 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
               <FileText className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-slate-700">No drafts created yet</p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No drafts created yet</p>
               <p className="text-xs text-slate-400 mt-1">
                 Submit your first draft to receive automated pre-publish findings.
               </p>
               <Link
                 href="/drafts/new"
-                className="mt-4 inline-block px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700"
+                className="mt-4 inline-block px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold"
               >
                 Create First Draft
               </Link>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-100 text-sm">
+              <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                 <thead>
-                  <tr className="text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <tr className="text-left text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                     <th className="pb-3">Title</th>
                     <th className="pb-3">Author</th>
                     <th className="pb-3">Status</th>
@@ -190,37 +190,37 @@ export default function DashboardPage() {
                     <th className="pb-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {drafts.slice(0, 5).map((draft) => (
-                    <tr key={draft.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="py-3.5 font-semibold text-slate-900">
+                    <tr key={draft.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="py-3.5 font-semibold text-slate-900 dark:text-slate-100">
                         <Link
                           href={`/drafts/${draft.id}`}
-                          className="hover:text-emerald-600 transition-colors"
+                          className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                         >
                           {draft.title}
                         </Link>
                       </td>
-                      <td className="py-3.5 text-xs text-slate-600">{draft.author_name}</td>
+                      <td className="py-3.5 text-xs text-slate-600 dark:text-slate-400">{draft.author_name}</td>
                       <td className="py-3.5">
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
-                            statusColors[draft.status] || "bg-slate-100 text-slate-700"
+                            statusColors[draft.status] || "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
                           }`}
                         >
                           {draft.status.replace("_", " ")}
                         </span>
                       </td>
-                      <td className="py-3.5 text-xs font-mono text-slate-500">
+                      <td className="py-3.5 text-xs font-mono text-slate-500 dark:text-slate-400">
                         v{draft.current_version}
                       </td>
-                      <td className="py-3.5 text-xs text-slate-500">
+                      <td className="py-3.5 text-xs text-slate-500 dark:text-slate-400">
                         {new Date(draft.updated_at || draft.created_at).toLocaleDateString()}
                       </td>
                       <td className="py-3.5 text-right">
                         <Link
                           href={`/drafts/${draft.id}`}
-                          className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+                          className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:underline"
                         >
                           Inspect →
                         </Link>

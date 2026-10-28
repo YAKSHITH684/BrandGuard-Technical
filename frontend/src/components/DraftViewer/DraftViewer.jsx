@@ -3,7 +3,7 @@ import React from "react";
 export default function DraftViewer({ content, findings, selectedFindingId, onSelectFinding }) {
   if (!content) {
     return (
-      <div className="p-8 text-center text-slate-400 italic bg-white rounded-xl border border-slate-200">
+      <div className="p-8 text-center text-slate-400 dark:text-slate-500 italic bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
         No draft content available.
       </div>
     );
@@ -65,7 +65,7 @@ export default function DraftViewer({ content, findings, selectedFindingId, onSe
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs font-mono text-sm leading-relaxed text-slate-800 whitespace-pre-wrap select-text">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs font-mono text-sm leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-wrap select-text">
       {elements}
     </div>
   );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AppShell from "../components/AppShell/AppShell";
+import ThemeToggle from "../components/ThemeToggle/ThemeToggle";
 import { useAuth } from "../store/auth";
 import { api, getApiBase, setApiBase } from "../services/api";
 import {
@@ -16,7 +17,8 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Key
+  Key,
+  Palette
 } from "lucide-react";
 import {
   speakText,
@@ -119,6 +121,21 @@ export default function SettingsPage() {
         )}
 
         <form onSubmit={handleSave} className="space-y-6">
+          {/* Appearance & Display Theme */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Palette className="w-4 h-4 text-emerald-600" />
+                Appearance & Display Theme
+              </h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Customize BrandGuard's visual presentation. Choose Light mode, Dark mode, or automatically match your operating system appearance.
+              </p>
+            </div>
+
+            <ThemeToggle variant="cards" />
+          </div>
+
           {/* Workspace Settings */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">

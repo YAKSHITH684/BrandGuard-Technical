@@ -28,10 +28,10 @@ export default function ReviewQueue({ queue, onApprove, onRequestChanges, userRo
 
   if (!queue || queue.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center">
         <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
-        <h3 className="text-base font-bold text-slate-800">Review Queue is Clear!</h3>
-        <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">
+        <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">Review Queue is Clear!</h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
           All submitted drafts have been reviewed and resolved. New drafts will appear here when submitted.
         </p>
       </div>
@@ -40,9 +40,9 @@ export default function ReviewQueue({ queue, onApprove, onRequestChanges, userRo
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+        <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+          <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">
             <tr>
               <th className="px-5 py-3 text-left">Draft Title</th>
               <th className="px-5 py-3 text-left">Author</th>
@@ -52,7 +52,7 @@ export default function ReviewQueue({ queue, onApprove, onRequestChanges, userRo
               <th className="px-5 py-3 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 bg-white">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
             {queue.map((item) => (
               <tr key={item.draft_id} className="hover:bg-slate-50/80 transition-colors">
                 <td className="px-5 py-4 font-semibold text-slate-900">
@@ -115,15 +115,15 @@ export default function ReviewQueue({ queue, onApprove, onRequestChanges, userRo
 
       {/* Decision Modal */}
       {selectedDraftId && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
           <form
             onSubmit={handleSubmit}
-            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200"
+            className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800"
           >
-            <h3 className="text-base font-bold text-slate-900 mb-2">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">
               {actionType === "approve" ? "Confirm Draft Approval" : "Request Revisions"}
             </h3>
-            <p className="text-xs text-slate-500 mb-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
               {actionType === "approve"
                 ? "This approval will be permanently stamped into the immutable audit trail."
                 : "Specify what changes the creator must make before this draft can be approved."}
@@ -133,13 +133,13 @@ export default function ReviewQueue({ queue, onApprove, onRequestChanges, userRo
               onChange={(e) => setNote(e.target.value)}
               placeholder="Add optional notes or compliance feedback..."
               rows={3}
-              className="w-full text-xs p-3 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full text-xs p-3 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
             />
             <div className="flex justify-end gap-2 mt-4">
               <button
                 type="button"
                 onClick={() => setSelectedDraftId(null)}
-                className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800"
+                className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
               >
                 Cancel
               </button>

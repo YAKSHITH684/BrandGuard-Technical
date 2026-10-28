@@ -121,28 +121,28 @@ export default function InsightsCharts({ summary }) {
             ClaimCheck Factual Grounding Distribution
           </h3>
           <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-center">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
-              <div className="text-lg font-bold text-emerald-900">
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-100 dark:border-emerald-800/40 text-center">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mx-auto mb-1" />
+              <div className="text-lg font-bold text-emerald-900 dark:text-emerald-200">
                 {claim_distribution?.supported || 0}
               </div>
-              <div className="text-[11px] font-semibold text-emerald-700">Supported</div>
+              <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Supported</div>
             </div>
 
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 text-center">
-              <Clock className="w-5 h-5 text-amber-600 mx-auto mb-1" />
-              <div className="text-lg font-bold text-amber-900">
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-100 dark:border-amber-800/40 text-center">
+              <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400 mx-auto mb-1" />
+              <div className="text-lg font-bold text-amber-900 dark:text-amber-200">
                 {claim_distribution?.outdated || 0}
               </div>
-              <div className="text-[11px] font-semibold text-amber-700">Outdated / Expired</div>
+              <div className="text-[11px] font-semibold text-amber-700 dark:text-amber-300">Outdated / Expired</div>
             </div>
 
-            <div className="p-3 bg-rose-50 rounded-xl border border-rose-100 text-center">
-              <AlertTriangle className="w-5 h-5 text-rose-600 mx-auto mb-1" />
-              <div className="text-lg font-bold text-rose-900">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-100 dark:border-rose-800/40 text-center">
+              <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 mx-auto mb-1" />
+              <div className="text-lg font-bold text-rose-900 dark:text-rose-200">
                 {claim_distribution?.unsupported || 0}
               </div>
-              <div className="text-[11px] font-semibold text-rose-700">Unsupported</div>
+              <div className="text-[11px] font-semibold text-rose-700 dark:text-rose-300">Unsupported</div>
             </div>
           </div>
           <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-600">

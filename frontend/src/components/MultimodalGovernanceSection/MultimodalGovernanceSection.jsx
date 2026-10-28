@@ -362,7 +362,7 @@ export default function MultimodalGovernanceSection({ drafts = [] }) {
   );
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-0">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden space-y-0">
       {/* 1. Header Banner */}
       <div className="p-6 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white relative">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">

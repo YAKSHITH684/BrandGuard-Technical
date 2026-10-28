@@ -58,9 +58,9 @@ export default function FindingCard({
   };
 
   const severityStyles = {
-    high: "border-l-4 border-l-rose-500 bg-rose-50/20",
-    medium: "border-l-4 border-l-amber-500 bg-amber-50/20",
-    low: "border-l-4 border-l-sky-500 bg-sky-50/20",
+    high: "border-l-4 border-l-rose-500 bg-rose-50/20 dark:bg-rose-950/20",
+    medium: "border-l-4 border-l-amber-500 bg-amber-50/20 dark:bg-amber-950/20",
+    low: "border-l-4 border-l-sky-500 bg-sky-50/20 dark:bg-sky-950/20",
   };
 
   const categoryLabels = {
@@ -110,33 +110,33 @@ export default function FindingCard({
   return (
     <div
       onClick={onSelect}
-      className={`rounded-xl border bg-white p-4 transition-all shadow-xs ${
-        isSelected ? "border-emerald-500 ring-2 ring-emerald-500/20 shadow-md" : "border-slate-200 hover:border-slate-300"
+      className={`rounded-xl border bg-white dark:bg-slate-900 p-4 transition-all shadow-xs ${
+        isSelected ? "border-emerald-500 ring-2 ring-emerald-500/20 shadow-md" : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
       } ${severityStyles[finding.severity] || ""}`}
     >
       {/* Header: Category & Badges */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
         <div className="flex items-center space-x-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
+          <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
             {categoryLabels[finding.category] || finding.category}
           </span>
           {finding.origin === "image_ocr" && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
               🖼️ Image Claim (OCR)
             </span>
           )}
           {finding.origin === "visual_check" && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-800">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
               🎨 Visual Brand Check
             </span>
           )}
           <span
             className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
               finding.severity === "high"
-                ? "bg-rose-100 text-rose-800"
+                ? "bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
                 : finding.severity === "medium"
-                ? "bg-amber-100 text-amber-800"
-                : "bg-sky-100 text-sky-800"
+                ? "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                : "bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800"
             }`}
           >
             {finding.severity} severity
@@ -187,28 +187,28 @@ export default function FindingCard({
       </div>
 
       {/* Highlighted flagged text excerpt */}
-      <div className="mb-3 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-        <span className="text-slate-400 font-medium block text-[10px] uppercase mb-0.5">
+      <div className="mb-3 text-xs bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+        <span className="text-slate-400 dark:text-slate-500 font-medium block text-[10px] uppercase mb-0.5">
           Flagged Text Segment:
         </span>
-        <span className="font-mono text-rose-700 font-semibold bg-rose-50 px-1 py-0.5 rounded">
+        <span className="font-mono text-rose-700 dark:text-rose-400 font-semibold bg-rose-50 dark:bg-rose-950/60 px-1 py-0.5 rounded">
           "{finding.span_text}"
         </span>
       </div>
 
       {/* Source Excerpt (Grounding Citation) */}
       {finding.source_excerpt && (
-        <div className="mb-3 text-xs bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-100">
-          <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-800 uppercase tracking-wider mb-1">
-            <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
+        <div className="mb-3 text-xs bg-emerald-50/50 dark:bg-emerald-950/20 p-2.5 rounded-lg border border-emerald-100 dark:border-emerald-800/40">
+          <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider mb-1">
+            <BookOpen className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             Approved Source Citation
             {finding.source_chunk_id && (
-              <span className="ml-auto font-mono text-[9px] text-emerald-600 font-normal">
+              <span className="ml-auto font-mono text-[9px] text-emerald-600 dark:text-emerald-400 font-normal">
                 Chunk #{finding.source_chunk_id.slice(0, 8)}
               </span>
             )}
           </div>
-          <p className="text-emerald-950 italic leading-relaxed">
+          <p className="text-emerald-950 dark:text-emerald-200 italic leading-relaxed">
             "{finding.source_excerpt}"
           </p>
         </div>

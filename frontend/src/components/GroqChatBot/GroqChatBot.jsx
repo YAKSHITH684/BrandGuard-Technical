@@ -211,7 +211,7 @@ export default function GroqChatBot() {
 
       {/* Floating Chat Modal */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-[95vw] sm:w-[460px] h-[600px] max-h-[88vh] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-6 right-6 z-50 w-[95vw] sm:w-[460px] h-[600px] max-h-[88vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-700 via-teal-800 to-slate-900 text-white p-3.5 flex items-center justify-between shadow-xs">
             <div className="flex items-center space-x-2.5">
@@ -352,8 +352,8 @@ export default function GroqChatBot() {
 
           {/* Quick Prompts Bar */}
           {messages.length <= 2 && (
-            <div className="bg-slate-50 border-b border-slate-200 p-2.5 overflow-x-auto">
-              <div className="text-[10px] uppercase font-bold text-slate-400 mb-1.5 tracking-wider px-1">
+            <div className="bg-slate-50 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 p-2.5 overflow-x-auto">
+              <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 mb-1.5 tracking-wider px-1">
                 Suggested Brand Questions:
               </div>
               <div className="flex gap-1.5 flex-nowrap">
@@ -361,7 +361,7 @@ export default function GroqChatBot() {
                   <button
                     key={idx}
                     onClick={() => handleSend(p)}
-                    className="whitespace-nowrap px-2.5 py-1 bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 rounded-lg text-[11px] font-medium border border-slate-200 transition-colors shadow-2xs"
+                    className="whitespace-nowrap px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-emerald-800 dark:hover:text-emerald-300 rounded-lg text-[11px] font-medium border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
                   >
                     {p}
                   </button>
@@ -371,7 +371,7 @@ export default function GroqChatBot() {
           )}
 
           {/* Chat Messages Body */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3.5 bg-slate-50/40 text-xs">
+          <div className="flex-1 p-4 overflow-y-auto space-y-3.5 bg-slate-50/40 dark:bg-slate-950/40 text-xs">
             {messages.map((m, idx) => {
               const isUser = m.role === "user";
               return (
@@ -381,7 +381,7 @@ export default function GroqChatBot() {
                 >
                   <div
                     className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold ${
-                      isUser ? "bg-slate-800" : m.isError ? "bg-rose-600" : "bg-emerald-600"
+                      isUser ? "bg-slate-800 dark:bg-slate-700" : m.isError ? "bg-rose-600" : "bg-emerald-600"
                     }`}
                   >
                     {isUser ? <User className="w-3.5 h-3.5" /> : m.isError ? <AlertCircle className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
@@ -390,10 +390,10 @@ export default function GroqChatBot() {
                   <div
                     className={`p-3 rounded-2xl max-w-[85%] leading-relaxed ${
                       isUser
-                        ? "bg-slate-900 text-white rounded-tr-none shadow-xs"
+                        ? "bg-slate-900 dark:bg-emerald-700 text-white rounded-tr-none shadow-xs"
                         : m.isError
-                        ? "bg-rose-50 text-rose-900 border border-rose-200 rounded-tl-none shadow-xs"
-                        : "bg-white text-slate-800 border border-slate-200 rounded-tl-none shadow-xs"
+                        ? "bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 border border-rose-200 dark:border-rose-800 rounded-tl-none shadow-xs"
+                        : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-tl-none shadow-xs"
                     }`}
                   >
                     <div className="whitespace-pre-wrap">{m.content}</div>
@@ -493,7 +493,7 @@ export default function GroqChatBot() {
           </div>
 
           {/* Footer Input */}
-          <div className="p-3 bg-white border-t border-slate-200">
+          <div className="p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
             <div className="relative flex items-center">
               <textarea
                 value={input}
@@ -505,7 +505,7 @@ export default function GroqChatBot() {
                     : "Ask about brand rules or request copy rewrite..."
                 }
                 rows={2}
-                className="w-full text-xs p-2.5 pr-16 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                className="w-full text-xs p-2.5 pr-16 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
               />
               <button
                 type="button"
@@ -514,7 +514,7 @@ export default function GroqChatBot() {
                 className={`absolute right-9 bottom-2 p-1.5 rounded-lg transition-colors ${
                   isListeningMic
                     ? "bg-rose-600 text-white animate-pulse"
-                    : "text-slate-400 hover:text-emerald-700 hover:bg-slate-100"
+                    : "text-slate-400 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-700"
                 }`}
               >
                 {isListeningMic ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
