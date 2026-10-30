@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: BrandGuard Documentation
+    url: https://github.com/YAKSHITH684/BrandGuard-Technical/tree/main/docs
+    about: Read our comprehensive architecture, API, and troubleshooting guides.
+  - name: Interactive Swagger UI
+    url: https://brandguard-technical.onrender.com/docs
+    about: Explore and test live API endpoints directly in your browser.
+  - name: Ask a Question or Get Support
+    url: https://github.com/YAKSHITH684/BrandGuard-Technical/discussions
+    about: Ask questions, share ideas, and discuss brand compliance with the community.
