@@ -6,16 +6,23 @@
 [![Backend](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](#tech-stack)
 [![Frontend](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white)](#tech-stack)
 [![DB](https://img.shields.io/badge/PostgreSQL%20%2B%20pgvector-336791?style=flat-square&logo=postgresql&logoColor=white)](#tech-stack)
+[![Documentation](https://img.shields.io/badge/Docs-Comprehensive%20Catalog-green?style=flat-square)](docs/README.md)
 
 **BrandGuard** catches banned terms, outdated facts, and ungrounded superlatives **before** content goes live. Every finding cites the exact rule violated and the approved source excerpt behind it. Nothing is auto-applied: humans accept, edit, reject, or dispute each finding, and every action lands in an append-only audit trail.
 
-## 🔗 Links
+---
 
-| | |
-|---|---|
-| **Live app** | https://brandguard-technical.onrender.com |
-| **Repository** | https://github.com/YAKSHITH684/BrandGuard-Technical |
-| **API docs (Swagger)** | `<backend-url>/docs` |
+## 🔗 Quick Links
+
+| Resource | Description | URL |
+|---|---|---|
+| **Live Application** | Production deployment on Render | [brandguard-technical.onrender.com](https://brandguard-technical.onrender.com) |
+| **Source Code** | GitHub repository | [github.com/YAKSHITH684/BrandGuard-Technical](https://github.com/YAKSHITH684/BrandGuard-Technical) |
+| **Interactive API Docs** | FastAPI Swagger UI | `<backend-url>/docs` (or `http://localhost:8000/docs`) |
+| **Documentation Index** | Complete documentation directory | [docs/README.md](docs/README.md) |
+| **Architecture Guide** | End-to-end system architecture | [docs/architecture.md](docs/architecture.md) |
+| **API Usage Guide** | REST endpoints and payloads | [docs/api-usage.md](docs/api-usage.md) |
+| **Deployment Guide** | Render static site + web service | [deploy/render_guide.md](deploy/render_guide.md) |
 
 > **Note:** The app runs on Render's free tier. If it has been idle, the first request can take 30–60 seconds while the service wakes up. Open the live link once and wait for the landing page before testing.
 
@@ -30,54 +37,60 @@
 5. Switch persona (Creator → Brand Manager → Legal) to walk through the approval flow.
 6. Visit **Insights** and **Audit** to see the feedback loop and the exportable audit trail.
 
-### Demo personas (pre-seeded)
+### Demo Personas (Pre-Seeded)
 
-| Persona | Email | Password | Role |
+| Persona | Email | Password | Role & Permissions |
 |---|---|---|---|
-| **Alex Vance** | `creator@brandguard.io` | `password123` | **Creator**: submits drafts, reviews findings, accepts or disputes rewrites |
-| **Elena Rostova** | `manager@brandguard.io` | `password123` | **Brand Manager**: ingests guidelines, monitors insights, approves standard drafts |
-| **Marcus Sterling** | `reviewer@brandguard.io` | `password123` | **Legal Reviewer**: gated sign-off on sensitive claims and unsupported assertions |
+| **Alex Vance** | `creator@brandguard.io` | `password123` | **Creator**: Submits drafts, reviews findings, accepts or disputes rewrites |
+| **Elena Rostova** | `manager@brandguard.io` | `password123` | **Brand Manager**: Ingests guidelines, monitors insights, approves standard drafts |
+| **Marcus Sterling** | `reviewer@brandguard.io` | `password123` | **Legal Reviewer**: Gated sign-off on sensitive claims and unsupported assertions |
 
 ---
 
 ## 🌟 Key Capabilities
 
-### 1. Deterministic Rule Engine (no AI needed)
-- Banned and required terminology enforcement
+### 1. Deterministic Rule Engine (No AI Needed)
+- Banned and required terminology enforcement with fuzzy and exact word-boundary matching
 - Superlative and absolute-claim detection ("world's best", "#1", "fastest", "guaranteed", unqualified percentages)
-- Readability analysis (Flesch Reading Ease, Flesch-Kincaid Grade Level)
+- Readability analysis via Flesch Reading Ease and Flesch-Kincaid Grade Level formulas
 - WCAG 2.1 AA color-contrast evaluator (4.5:1 text, 3:1 large text)
-- Accessibility checks (generic link text such as "click here", missing alt text)
+- Accessibility checks (generic link text such as "click here", missing image alt text)
 
 ### 2. Grounded, Retrieval-Augmented Review
 - Source ingestion for guidelines, fact sheets, and glossaries (PDF, DOCX, TXT, MD)
-- Sectioned chunking with effective and expiry dates
-- 384-dimensional semantic embeddings in pgvector (PostgreSQL), with SQLite fallback
-- Structured JSON review via Groq (`llama-3.3-70b-versatile`) that cites exact source chunk IDs
+- Sectioned chunking preserving effective and expiry dates
+- 384-dimensional semantic embeddings stored in pgvector (PostgreSQL), with SQLite fallback
+- Structured JSON review via Groq (`llama-3.3-70b-versatile`) citing exact source chunk IDs
 
 ### 3. ClaimCheck: Text and Images (OCR)
-- Labels factual and promotional claims **Supported**, **Outdated**, or **Unsupported**, with the exact fact-sheet chunk and a confidence score
+- Classifies factual and promotional claims as **Supported**, **Outdated**, or **Unsupported**
+- Matches claims against time-bounded fact-sheet assertions with confidence scores
 - Extracts claims embedded in graphics (banners, infographics, slide screenshots) via OCR
-- One consistent verdict across written copy and images
+- Delivers a unified verdict across written copy and visual assets
 
-### 4. Privacy Layer: Text and Images
-- Pre-flight redaction of PII, secrets, and API keys before anything is sent to an external model
-- Detects and irreversibly blurs faces, vehicle license plates, and visible confidential screen text in images
-- AI involvement is disclosed on every finding and logged to the audit trail
+### 4. Zero-Leak Privacy Layer
+- Pre-flight regex masking of PII, secrets, and API keys before sending prompts to LLM
+- Automated detection and irreversible blurring of faces, license plates, and confidential screen text in images
+- Explicit AI disclosure metadata stamped on every finding and logged to the audit log
 
-### 5. Human-in-the-Loop Workflow
-- Lifecycle: `DRAFT` → `IN_REVIEW` → `CHANGES_REQUESTED` → `DISPUTED` → `APPROVED`
+### 5. Predictive Compliance Scoring & AI Auto-Rewrite
+- Pre-computes compliance scores across brand tone, factual accuracy, legal risk, and accessibility
+- One-click context-aware AI rewrite assistant generating compliant alternatives
+- Side-by-side diff comparison between original draft and proposed revision
+
+### 6. Human-in-the-Loop Workflow
+- Deterministic finite state machine: `DRAFT` → `IN_REVIEW` → `CHANGES_REQUESTED` → `DISPUTED` → `APPROVED`
 - Version diff viewer between revisions
-- Role-based approval queue: sensitive claims require Legal Reviewer sign-off
+- Role-based approval queue: high-risk claims require Legal Reviewer sign-off
 
-### 6. Guideline Feedback Loop (Insights and Visual Violations)
-- Surfaces the most-overridden and most-disputed rules so ambiguous guidelines get fixed
+### 7. Guideline Feedback Loop & Visual Insights
+- Surfaces the most-overridden and most-disputed rules so ambiguous guidelines get updated
 - Aggregates visual violations: off-palette colors, wrong or distorted logos, low contrast, missing alt text
-- Flags recurring agency mistakes (for example, repeated use of an outdated logo) with recommendations
+- Flags recurring agency mistakes with data-backed recommendations
 
-### 7. Immutable Audit Trail
-- Append-only event log covering redactions, OCR claim analyses, and approval decisions
-- Exportable as RFC 4180 CSV
+### 8. Immutable Audit Trail
+- Append-only event log covering redactions, OCR analyses, overrides, and approvals
+- RFC 4180 CSV export for regulatory and compliance audits
 
 ---
 
@@ -102,71 +115,65 @@
                                    (SQLite fallback for local dev)
 ```
 
-**Review flow:** draft submitted → PII redacted → deterministic checks run → relevant source chunks retrieved by embedding similarity → Groq returns structured findings citing chunk IDs → findings shown with rewrites → human decision → audit event written.
+**Review Flow:** Draft submitted → PII redacted → Deterministic checks run → Relevant source chunks retrieved by embedding similarity → Groq returns structured findings citing chunk IDs → Findings shown with rewrites → Human decision → Audit event written.
 
 ---
 
 ## 🧰 Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js, Tailwind CSS |
-| Backend | FastAPI, SQLAlchemy, Pydantic |
-| Database | PostgreSQL + pgvector (SQLite fallback) |
-| LLM | Groq, `llama-3.3-70b-versatile`, structured JSON output |
-| Embeddings | 384-dimensional vectors |
-| Deployment | Render (`render.yaml`) |
-
-### 🤖 LLM: Groq
-
-BrandGuard uses **Groq** (`llama-3.3-70b-versatile`) as its LLM provider.
-
-- **Structured review:** returns JSON findings that cite exact source chunk IDs, so every verdict is grounded.
-- **ClaimCheck:** classifies claims as Supported, Outdated, or Unsupported against the dated fact sheet, including text extracted from images via OCR.
-- **Rewrites:** suggests intent-preserving rewrites that humans accept, edit, or reject.
-- **Privacy first:** PII, secrets, and API keys are redacted before any text reaches Groq, and AI involvement is disclosed on every finding.
-- **Graceful without it:** the deterministic rule engine runs with no LLM call at all.
+| Layer | Technology | Details |
+|---|---|---|
+| **Frontend** | Next.js 14, Tailwind CSS | Pages router, responsive layout, dark/light theme |
+| **Backend** | FastAPI, Python 3.12, Uvicorn | Async endpoints, dependency injection, Pydantic schemas |
+| **Database** | PostgreSQL + pgvector | High-performance vector similarity, SQLite fallback |
+| **LLM Inference** | Groq (`llama-3.3-70b-versatile`) | Ultra-fast inference with structured JSON mode |
+| **Embeddings** | Sentence Transformers | 384-dimensional vector embeddings |
+| **Deployment** | Render (`render.yaml`) | Next.js Static Site + FastAPI Web Service |
 
 ---
 
-## 🚀 Run Locally (no Docker)
+## 🚀 Run Locally (No Docker)
 
-**Windows quick start:** double-click `start.bat`, or run the two servers manually:
+### Windows Quick Start
+Double-click `start.bat` in the repository root, or run the two servers manually in separate terminals:
 
 ```bash
-# Terminal 1 — backend
+# Terminal 1 — Backend
 cd backend
 pip install -r requirements.txt
 py -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-# Terminal 2 — frontend
+# Terminal 2 — Frontend
 cd frontend
 npm install
 npm run dev
 ```
 
-- Frontend: http://localhost:3000
-- Backend: http://localhost:8000
-- Swagger docs: http://localhost:8000/docs
+- **Frontend:** http://localhost:3000
+- **Backend:** http://localhost:8000
+- **Interactive Swagger Docs:** http://localhost:8000/docs
 
-### Environment variables
+### Environment Variables
 
-| Variable | Purpose |
-|---|---|
-| `GROQ_API_KEY` | Groq LLM access for structured review |
-| `DATABASE_URL` | PostgreSQL connection string (omit to use the SQLite fallback) |
-
-Without a Groq key, the deterministic rule engine still runs.
+| Variable | Required | Description | Default |
+|---|---|---|---|
+| `GROQ_API_KEY` | Optional | Groq LLM access for structured review and rewrites | None (runs rule engine only) |
+| `DATABASE_URL` | Optional | PostgreSQL connection string | `sqlite:///./brandguard.db` |
+| `JWT_SECRET` | Optional | Secret key for JWT token signing | Pre-configured dev secret |
+| `CONFIDENCE_THRESHOLD` | Optional | Minimum confidence score for claim validation | `0.65` |
 
 ---
 
 ## 🧪 Testing
 
+Execute test suites from the `backend/` directory:
+
 ```bash
 cd backend
 python test_suite.py                  # 17-step end-to-end integration test
-python test_multimodal_logic.py       # image ClaimCheck, privacy blurring, visual insights
-python e2e_test_suite.py              # full-flow end-to-end checks
+python test_multimodal_logic.py       # Image ClaimCheck, privacy blurring, visual insights
+python e2e_test_suite.py              # Full-flow end-to-end verification
+python test_user_scenarios.py         # Multi-persona workflow scenarios
 ```
 
 ---
@@ -177,46 +184,46 @@ python e2e_test_suite.py              # full-flow end-to-end checks
 brandguard/
 ├── backend/
 │   ├── app/
-│   │   ├── ai/            # Redaction, embeddings, retrieval, Groq client, ClaimCheck
-│   │   ├── checks/        # Banned terms, claim patterns, readability, contrast, a11y
+│   │   ├── ai/            # Redaction, embeddings, retrieval, Groq client, ClaimCheck, OCR
+│   │   ├── checks/        # Banned terms, claim patterns, readability, contrast, visual, a11y
 │   │   ├── models/        # SQLAlchemy models (pgvector compatible)
-│   │   ├── routers/       # auth, sources, drafts, findings, reviews, checks, insights, audit
-│   │   ├── schemas/       # Pydantic schemas
-│   │   ├── seed/          # Guidelines, fact sheet, glossary, seed script
-│   │   ├── services/      # Business logic and pipeline orchestration
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   └── main.py        # FastAPI entrypoint
-│   └── test_suite.py
+│   │   ├── routers/       # auth, sources, drafts, findings, reviews, checks, insights, audit, chatbot, voice
+│   │   ├── schemas/       # Pydantic schemas for request validation & serialization
+│   │   ├── seed/          # Guidelines, fact sheet, glossary, demo seed scripts
+│   │   ├── services/      # Business logic, auto-rewrite, predictive scoring, review pipeline
+│   │   ├── config.py      # App configuration and settings
+│   │   ├── database.py    # Database engine and session management
+│   │   └── main.py        # FastAPI entrypoint and lifespan events
+│   ├── tests/             # Automated test cases
+│   └── requirements.txt   # Python dependencies
 ├── frontend/
-│   └── src/
-│       ├── components/    # AppShell, DraftViewer, FindingCard, ClaimBadge, VersionDiff, ReviewQueue, InsightsCharts
-│       ├── pages/         # dashboard, drafts, sources, reviews, insights, audit, settings
-│       └── services/      # API client
-├── deploy/                # Deployment configuration
-├── render.yaml            # Render blueprint
-├── start.bat · run_backend.bat · run_frontend.bat
-└── README.md
+│   ├── src/
+│   │   ├── components/    # AppShell, DraftViewer, FindingCard, MultimodalGovernance, etc.
+│   │   ├── pages/         # Next.js pages (dashboard, drafts, sources, reviews, insights, audit, settings, voice)
+│   │   ├── services/      # API client
+│   │   ├── store/         # State management (auth, theme)
+│   │   └── styles/        # Global CSS and Tailwind definitions
+│   └── package.json       # Frontend dependencies
+├── deploy/                # Render deployment guide and scripts
+├── docs/                  # Detailed architectural and technical documentation
+├── render.yaml            # Render blueprint definition
+├── start.bat              # Windows combined launcher
+└── README.md              # Project overview
 ```
 
 ---
 
 ## 🗺️ Roadmap
 
-- Flag overlays drawn directly on images (bounding boxes by severity)
-- Rule impact simulator: preview which past drafts flip pass/fail when a guideline changes
-- Publish-gate API for CMS and CI integration
-- Multilingual checks (Hindi, Telugu)
-- Auto-fix suggestions with side-by-side diff
-- Tamper-evident (hash-chained) audit log
+- [ ] Flag overlays drawn directly on images (bounding boxes by severity)
+- [ ] Rule impact simulator: preview which past drafts flip pass/fail when a guideline changes
+- [ ] Publish-gate API and webhook for CMS and CI/CD integration
+- [ ] Multilingual checks (Hindi, Spanish, German, Japanese)
+- [ ] Tamper-evident hash-chained audit log verification
 
 ---
 
-## 📄 License
+## 📄 License & Attributions
 
-Built for the Inkloom AI Hackathon.
-    └── src/
-        ├── components/    # AppShell, DraftViewer, FindingCard, ClaimBadge, VersionDiff, ReviewQueue, InsightsCharts
-        ├── pages/         # Next.js pages (dashboard, drafts, sources, reviews, insights, audit, settings)
-        └── services/      # Frontend API client
-```
+Built for the **Inkloom AI Hackathon · Round 3: The Final**.
+Protected under the MIT License.
