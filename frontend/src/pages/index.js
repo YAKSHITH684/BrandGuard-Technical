@@ -24,29 +24,43 @@ export default function LandingPage() {
   const { user, login } = useAuth();
   const [entering, setEntering] = useState(false);
   const [backendReady, setBackendReady] = useState(false);
+  const [backendInfo, setBackendInfo] = useState(null);
 
   // Pre-warm backend immediately on visit to eliminate cold-start delays
   useEffect(() => {
     let isMounted = true;
-    api
-      .checkBackendHealth()
-      .then(() => {
-        if (isMounted) setBackendReady(true);
-      })
-      .catch(() => {
-        // Retry silently to warm up Render container
-        setTimeout(() => {
-          api
-            .checkBackendHealth()
-            .then(() => isMounted && setBackendReady(true))
-            .catch(() => {});
-        }, 3000);
-      });
+    let pollInterval = null;
+
+    const check = async () => {
+      try {
+        const info = await api.checkBackendHealth();
+        if (isMounted) {
+          setBackendReady(true);
+          setBackendInfo(info);
+          if (pollInterval) clearInterval(pollInterval);
+        }
+      } catch (err) {
+        // Continue polling until backend is responsive
+      }
+    };
+
+    check();
+    pollInterval = setInterval(check, 2500);
 
     return () => {
       isMounted = false;
+      if (pollInterval) clearInterval(pollInterval);
     };
   }, []);
+
+  const handleSwitchLocal = async () => {
+    api.setApiBase(api.LOCAL_API_URL);
+    try {
+      const info = await api.checkBackendHealth(2000);
+      setBackendReady(true);
+      setBackendInfo(info);
+    } catch (e) {}
+  };
 
   const handleFastEnter = async (personaRole = "creator") => {
     setEntering(true);
@@ -92,8 +106,8 @@ export default function LandingPage() {
         </div>
 
         <div className="flex items-center space-x-3">
-          {/* Cloud server live pulse */}
-          <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-800/80 border border-slate-700">
+          {/* Backend server live pulse */}
+          <div className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-800/80 border border-slate-700">
             <span
               className={`w-2 h-2 rounded-full ${
                 backendReady
@@ -102,8 +116,20 @@ export default function LandingPage() {
               }`}
             />
             <span className="text-slate-300">
-              {backendReady ? "Cloud Online (Fast)" : "Connecting..."}
+              {backendReady
+                ? `Backend Online (${backendInfo?.is_local ? "Local :8000" : "Cloud"} · ${backendInfo?.ping_ms || 10}ms)`
+                : "Connecting..."}
             </span>
+            {!backendReady && (
+              <button
+                type="button"
+                onClick={handleSwitchLocal}
+                className="px-1.5 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[10px] font-semibold"
+                title="Connect to local backend at http://localhost:8000"
+              >
+                Local :8000
+              </button>
+            )}
           </div>
 
           <ThemeToggle />

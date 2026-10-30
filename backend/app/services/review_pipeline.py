@@ -36,7 +36,8 @@ def run_brandguard_review(
     actor_id: Optional[str] = None,
     color_pairs: Optional[List[Any]] = None,
     alt_texts: Optional[List[Dict[str, str]]] = None,
-    images: Optional[List[Dict[str, Any]]] = None
+    images: Optional[List[Dict[str, Any]]] = None,
+    skip_llm: bool = False
 ) -> Tuple[List[Finding], str]:
     """
     Executes the full BrandGuard pre-publish review pipeline:
@@ -204,28 +205,30 @@ def run_brandguard_review(
 
     # 5. LLM Review on Text (Groq)
     ai_status = "unavailable"
-    ai_findings, ai_status = run_llm_review(
-        draft_text=redacted_text,
-        retrieved_chunks=retrieved_chunks,
-        redaction_applied=redaction_applied
-    )
-
-    if ai_status == "available":
-        log_audit_event(
-            db=db,
-            workspace_id=workspace_id,
-            actor_id=actor_id,
-            event_type="external_model_call",
-            entity_type="draft_version",
-            entity_id=draft_version_id,
-            metadata={
-                "provider": "Groq",
-                "model": "llama-3.3-70b-versatile",
-                "redaction_applied": redaction_applied,
-                "redacted_items_count": len(redaction_summary),
-                "chunks_provided_count": len(retrieved_chunks)
-            }
+    ai_findings = []
+    if not skip_llm:
+        ai_findings, ai_status = run_llm_review(
+            draft_text=redacted_text,
+            retrieved_chunks=retrieved_chunks,
+            redaction_applied=redaction_applied
         )
+
+        if ai_status == "available":
+            log_audit_event(
+                db=db,
+                workspace_id=workspace_id,
+                actor_id=actor_id,
+                event_type="external_model_call",
+                entity_type="draft_version",
+                entity_id=draft_version_id,
+                metadata={
+                    "provider": "Groq",
+                    "model": "llama-3.3-70b-versatile",
+                    "redaction_applied": redaction_applied,
+                    "redacted_items_count": len(redaction_summary),
+                    "chunks_provided_count": len(retrieved_chunks)
+                }
+            )
 
     for af in ai_findings:
         chunk_id = af.get("source_chunk_id")

@@ -26,19 +26,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import threading
+
 # Startup hook to initialize DB tables and seed demo personas
 @app.on_event("startup")
 def on_startup():
-    print("[STARTUP] Initializing DB...", flush=True)
+    print("[STARTUP] Fast initializing DB...", flush=True)
     init_db()
     print("[STARTUP] DB initialized.", flush=True)
-    try:
-        from app.seed.populate_demo_cases import ensure_seed_data
-        print("[STARTUP] Ensuring seed data...", flush=True)
-        ensure_seed_data()
-        print("[STARTUP] Seed data ensured.", flush=True)
-    except Exception as e:
-        print(f"[Warning] Seeding skipped or encountered error: {e}", flush=True)
+
+    def _async_seed():
+        try:
+            from app.seed.populate_demo_cases import ensure_seed_data
+            ensure_seed_data()
+            print("[STARTUP] Seed data ensured.", flush=True)
+        except Exception as e:
+            print(f"[Warning] Seeding skipped or encountered error: {e}", flush=True)
+
+    thread = threading.Thread(target=_async_seed, daemon=True)
+    thread.start()
 
 # Health heartbeat & root status
 @app.get("/")

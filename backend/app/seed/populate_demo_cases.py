@@ -148,7 +148,8 @@ def ensure_seed_data():
             draft_version_id=v1.id,
             raw_content=v1.content,
             actor_id=creator.id,
-            color_pairs=[{"foreground": "#9CA3AF", "background": "#FFFFFF", "label": "Low Contrast Caption"}]
+            color_pairs=[{"foreground": "#9CA3AF", "background": "#FFFFFF", "label": "Low Contrast Caption"}],
+            skip_llm=True
         )
 
     # Case B: Sensitive Claims Draft in Review Queue requiring Legal Review
@@ -183,7 +184,8 @@ def ensure_seed_data():
             workspace_id=ws.id,
             draft_version_id=v2.id,
             raw_content=v2.content,
-            actor_id=creator.id
+            actor_id=creator.id,
+            skip_llm=True
         )
 
     # Case C: Clean Compliant Draft (IN_REVIEW ready for Brand Manager Approval)
@@ -218,7 +220,8 @@ def ensure_seed_data():
             workspace_id=ws.id,
             draft_version_id=v3.id,
             raw_content=v3.content,
-            actor_id=creator.id
+            actor_id=creator.id,
+            skip_llm=True
         )
 
     # Case D: Changes Requested Draft
@@ -316,7 +319,8 @@ def ensure_seed_data():
             draft_version_id=v5.id,
             raw_content=v5.content,
             actor_id=creator.id,
-            images=sample_images
+            images=sample_images,
+            skip_llm=True
         )
 
     db.close()

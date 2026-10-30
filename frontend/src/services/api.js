@@ -1,3 +1,12 @@
+const RENDER_API_URL = "https://brandguard-technical1.onrender.com/api";
+const LOCAL_API_URL = "http://localhost:8000/api";
+
+export function isLocalEnvironment() {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  return host === "localhost" || host === "127.0.0.1" || host === "0.0.0.0" || host.startsWith("192.168.");
+}
+
 export function getApiBase() {
   let base = "";
   if (typeof window !== "undefined") {
@@ -9,10 +18,13 @@ export function getApiBase() {
     }
     if (custom && custom.trim()) {
       base = custom.trim().replace(/\/+$/, "");
+    } else {
+      // Default local dev to localhost:8000, and deployed cloud sites to Render
+      base = isLocalEnvironment() ? LOCAL_API_URL : RENDER_API_URL;
     }
   }
   if (!base) {
-    base = (process.env.NEXT_PUBLIC_API_URL || "https://brandguard-technical1.onrender.com/api").trim().replace(/\/+$/, "");
+    base = (process.env.NEXT_PUBLIC_API_URL || (isLocalEnvironment() ? LOCAL_API_URL : RENDER_API_URL)).trim().replace(/\/+$/, "");
   }
   if (!base.endsWith("/api")) {
     base = `${base}/api`;
@@ -48,8 +60,14 @@ async function request(endpoint, options = {}) {
   const base = getApiBase();
   const url = `${base}${endpoint}`;
   const isFormData = options.body instanceof FormData;
+
+  // 20-second bounded timeout to prevent eternal browser hangs
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), options.timeout || 20000);
+
   const config = {
     ...options,
+    signal: options.signal || controller.signal,
     headers: {
       ...getHeaders(isFormData),
       ...(options.headers || {}),
@@ -58,6 +76,8 @@ async function request(endpoint, options = {}) {
 
   try {
     const res = await fetch(url, config);
+    clearTimeout(timeoutId);
+
     if (!res.ok) {
       let errorDetail = `Request failed (${res.status})`;
       try {
@@ -75,22 +95,127 @@ async function request(endpoint, options = {}) {
     }
     return res.json();
   } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === "AbortError") {
+      throw new Error(`Request timed out reaching backend at ${base}. Server may be starting up.`);
+    }
     if (err.name === "TypeError" && err.message.toLowerCase().includes("fetch")) {
-      throw new Error(`Cannot reach backend at ${base}. Please verify your backend service is running.`);
+      throw new Error(`Cannot reach backend at ${base}. Please verify your backend server is running.`);
     }
     throw err;
   }
 }
 
+// Helper to probe an endpoint with a short timeout
+async function probeHealth(baseUrl, timeoutMs = 2500) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const cleanBase = baseUrl.trim().replace(/\/+$/, "");
+  const targetUrl = cleanBase.endsWith("/api") ? `${cleanBase}/health` : `${cleanBase}/api/health`;
+
+  try {
+    const t0 = performance.now();
+    const res = await fetch(targetUrl, {
+      method: "GET",
+      signal: controller.signal,
+      headers: { Accept: "application/json" },
+    });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`Health returned HTTP ${res.status}`);
+    const data = await res.json();
+    const pingMs = Math.round(performance.now() - t0);
+    return { ok: true, data, baseUrl: cleanBase, pingMs };
+  } catch (err) {
+    clearTimeout(timer);
+    return { ok: false, error: err, baseUrl: cleanBase };
+  }
+}
+
+// Background keep-alive interval to prevent Render free container sleep
+let keepAliveTimer = null;
+function startKeepAlive() {
+  if (typeof window === "undefined" || keepAliveTimer) return;
+  // Ping every 9 minutes (Render sleeps after 15 mins of inactivity)
+  keepAliveTimer = setInterval(() => {
+    const base = getApiBase();
+    if (base.includes("onrender.com")) {
+      fetch(`${base}/health`, { method: "GET", mode: "no-cors" }).catch(() => {});
+    }
+  }, 9 * 60 * 1000);
+}
+startKeepAlive();
+
 export const api = {
   getApiBase,
   setApiBase,
-  checkBackendHealth: async () => {
-    const base = getApiBase();
-    const res = await fetch(`${base}/health`, { method: "GET" });
-    if (!res.ok) throw new Error(`Health check failed (${res.status})`);
-    return res.json();
+  isLocalEnvironment,
+  RENDER_API_URL,
+  LOCAL_API_URL,
+
+  /**
+   * Fast intelligent health check:
+   * 1. Probes the configured base URL with a fast timeout (2.5s)
+   * 2. If it fails and in local environment, seamlessly falls back between Localhost and Cloud
+   */
+  checkBackendHealth: async (timeoutMs = 2800) => {
+    const currentBase = getApiBase();
+
+    // 1. Try current configured backend first
+    const primary = await probeHealth(currentBase, timeoutMs);
+    if (primary.ok) {
+      return {
+        ...primary.data,
+        active_url: primary.baseUrl,
+        ping_ms: primary.pingMs,
+        is_local: primary.baseUrl.includes("localhost") || primary.baseUrl.includes("127.0.0.1"),
+      };
+    }
+
+    // 2. If current fails in local dev environment, try alternative
+    if (isLocalEnvironment()) {
+      const isCurrentLocal = currentBase.includes("localhost") || currentBase.includes("127.0.0.1");
+      const fallbackUrl = isCurrentLocal ? RENDER_API_URL : LOCAL_API_URL;
+
+      const secondary = await probeHealth(fallbackUrl, 2500);
+      if (secondary.ok) {
+        setApiBase(secondary.baseUrl);
+        return {
+          ...secondary.data,
+          active_url: secondary.baseUrl,
+          ping_ms: secondary.pingMs,
+          is_local: secondary.baseUrl.includes("localhost") || secondary.baseUrl.includes("127.0.0.1"),
+          switched_to_fallback: true,
+        };
+      }
+    }
+
+    throw new Error(`Cannot reach backend at ${currentBase}`);
   },
+
+  /**
+   * Concurrently probes localhost and cloud in parallel, locking onto whichever is faster!
+   */
+  autoDetectFastestBackend: async () => {
+    const candidates = [LOCAL_API_URL, RENDER_API_URL];
+    const results = await Promise.all(candidates.map((url) => probeHealth(url, 2500)));
+    const successful = results.filter((r) => r.ok);
+
+    if (successful.length > 0) {
+      // Pick local if available, else fastest ping
+      const local = successful.find((r) => r.baseUrl.includes("localhost"));
+      const winner = local || successful.sort((a, b) => a.pingMs - b.pingMs)[0];
+      setApiBase(winner.baseUrl);
+      return {
+        ...winner.data,
+        active_url: winner.baseUrl,
+        ping_ms: winner.pingMs,
+        is_local: winner.baseUrl.includes("localhost") || winner.baseUrl.includes("127.0.0.1"),
+      };
+    }
+
+    throw new Error("Neither local backend nor cloud backend responded.");
+  },
+
   // Auth
   login: (email, password) =>
     request("/auth/login", {

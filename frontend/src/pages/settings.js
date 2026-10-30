@@ -455,6 +455,26 @@ export default function SettingsPage() {
                   >
                     Default Render URL
                   </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setApiTesting(true);
+                      setApiStatus({ ok: true, msg: "Auto-detecting fastest backend..." });
+                      try {
+                        const winner = await api.autoDetectFastestBackend();
+                        setApiUrl(winner.active_url);
+                        setHealth(winner);
+                        setApiStatus({ ok: true, msg: `Locked onto fastest: ${winner.active_url} (${winner.ping_ms}ms)` });
+                      } catch (err) {
+                        setApiStatus({ ok: false, msg: err.message });
+                      } finally {
+                        setApiTesting(false);
+                      }
+                    }}
+                    className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-200 text-[10px] font-semibold flex items-center gap-1"
+                  >
+                    ⚡ Auto-Detect Fastest
+                  </button>
                 </div>
 
                 {apiStatus && (

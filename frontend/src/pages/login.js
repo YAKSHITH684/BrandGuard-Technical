@@ -42,29 +42,51 @@ export default function LoginPage() {
 
   // Server health & cold-start indicator
   const [backendStatus, setBackendStatus] = useState("checking"); // checking | online | waking
+  const [backendInfo, setBackendInfo] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
-    api
-      .checkBackendHealth()
-      .then(() => {
-        if (isMounted) setBackendStatus("online");
-      })
-      .catch(() => {
-        if (isMounted) setBackendStatus("waking");
-        // Retry in 3 seconds to catch Render spin-up
-        setTimeout(() => {
-          api
-            .checkBackendHealth()
-            .then(() => isMounted && setBackendStatus("online"))
-            .catch(() => isMounted && setBackendStatus("waking"));
-        }, 3000);
-      });
+    let pollInterval = null;
+
+    const check = async () => {
+      try {
+        const info = await api.checkBackendHealth();
+        if (isMounted) {
+          setBackendStatus("online");
+          setBackendInfo(info);
+          if (pollInterval) clearInterval(pollInterval);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setBackendStatus("waking");
+        }
+      }
+    };
+
+    check();
+    pollInterval = setInterval(check, 2500);
 
     return () => {
       isMounted = false;
+      if (pollInterval) clearInterval(pollInterval);
     };
   }, []);
+
+  const handleSwitchBackend = async (target) => {
+    setBackendStatus("checking");
+    if (target === "local") {
+      api.setApiBase(api.LOCAL_API_URL);
+    } else {
+      api.setApiBase(api.RENDER_API_URL);
+    }
+    try {
+      const info = await api.checkBackendHealth(2000);
+      setBackendStatus("online");
+      setBackendInfo(info);
+    } catch (e) {
+      setBackendStatus("waking");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -161,7 +183,7 @@ export default function LoginPage() {
         </p>
 
         {/* Server Status Pill */}
-        <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/80 border border-slate-700/80">
+        <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/80 border border-slate-700/80">
           <span
             className={`w-2 h-2 rounded-full ${
               backendStatus === "online"
@@ -171,9 +193,19 @@ export default function LoginPage() {
           />
           <span className="text-slate-300">
             {backendStatus === "online"
-              ? "Cloud Engine Online (Fast Response)"
-              : "Connecting to Cloud Engine..."}
+              ? `Backend Online (${backendInfo?.is_local ? "Local :8000" : "Cloud"} · ${backendInfo?.ping_ms || 10}ms)`
+              : "Connecting to Backend..."}
           </span>
+          {backendStatus !== "online" && (
+            <button
+              type="button"
+              onClick={() => handleSwitchBackend("local")}
+              className="ml-1 px-2 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[10px] font-semibold transition-colors"
+              title="Connect to local backend server at http://localhost:8000"
+            >
+              Use Local :8000
+            </button>
+          )}
         </div>
       </div>
 
