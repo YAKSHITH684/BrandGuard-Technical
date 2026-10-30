@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import AppShell from "../../components/AppShell/AppShell";
 import VoiceDictation from "../../components/VoiceDictation/VoiceDictation";
+import PredictiveScoreCard from "../../components/PredictiveScoreCard/PredictiveScoreCard";
+import AutoRewriteModal from "../../components/AutoRewriteModal/AutoRewriteModal";
 import { api } from "../../services/api";
 import {
   FilePlus2,
@@ -27,6 +29,11 @@ export default function NewDraftPage() {
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Predictive Compliance Scoring & Auto-Rewrite states
+  const [predictiveScore, setPredictiveScore] = useState(null);
+  const [scoringLoading, setScoringLoading] = useState(false);
+  const [rewriteModalOpen, setRewriteModalOpen] = useState(false);
 
   const isSubmittingRef = useRef(false);
   const fileInputRef = useRef(null);
@@ -88,6 +95,43 @@ export default function NewDraftPage() {
       ocr_text: "Alex Vance — Lead Enterprise Architect, internal employee workstation #EMP-8821 with API key gsk_live_secret_key_88921."
     }
   ]);
+
+  const handleCalculatePredictiveScore = async (textToScore = null) => {
+    const text = textToScore !== null ? textToScore : content;
+    if (!text || !text.trim()) {
+      setPredictiveScore(null);
+      return;
+    }
+    setScoringLoading(true);
+    try {
+      const colorPairs = enableColorCheck
+        ? [{ foreground, background, font_size: "normal" }]
+        : [];
+      const score = await api.getPredictiveScore({
+        text,
+        target_ease: 60.0,
+        color_pairs: colorPairs,
+        images: enableImageCheck ? attachedImages : [],
+      });
+      setPredictiveScore(score);
+    } catch (err) {
+      console.warn("Predictive scoring error:", err);
+    } finally {
+      setScoringLoading(false);
+    }
+  };
+
+  // Debounced auto-scoring when content changes
+  useEffect(() => {
+    if (!content || !content.trim()) {
+      setPredictiveScore(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      handleCalculatePredictiveScore(content);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [content, enableImageCheck, attachedImages.length, enableColorCheck, foreground, background]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
@@ -380,20 +424,32 @@ For detailed security whitepapers and verification reports, explore the Acme Tru
 
             <div>
               <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                   Draft Content (Text or Markdown)
                 </label>
-                <VoiceDictation
-                  onTranscript={(newSpeech) => {
-                    setContent((prev) => (prev ? `${prev} ${newSpeech}` : newSpeech));
-                  }}
-                  hasImagesOrRedaction={enableImageCheck && attachedImages.length > 0}
-                  disabledReason={
-                    enableImageCheck && attachedImages.length > 0
-                      ? "Voice dictation disabled on draft copy while multimodal image assets are attached (Zero-Exposure Policy)."
-                      : ""
-                  }
-                />
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRewriteModalOpen(true)}
+                    disabled={!content.trim()}
+                    className="px-3 py-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/60 dark:to-purple-950/60 hover:from-indigo-100 hover:to-purple-100 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-all disabled:opacity-40"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                    AI Auto-Rewrite Assistant
+                  </button>
+
+                  <VoiceDictation
+                    onTranscript={(newSpeech) => {
+                      setContent((prev) => (prev ? `${prev} ${newSpeech}` : newSpeech));
+                    }}
+                    hasImagesOrRedaction={enableImageCheck && attachedImages.length > 0}
+                    disabledReason={
+                      enableImageCheck && attachedImages.length > 0
+                        ? "Voice dictation disabled on draft copy while multimodal image assets are attached (Zero-Exposure Policy)."
+                        : ""
+                    }
+                  />
+                </div>
               </div>
               <textarea
                 required
@@ -405,6 +461,14 @@ For detailed security whitepapers and verification reports, explore the Acme Tru
               />
             </div>
           </div>
+
+          {/* Predictive Compliance Scoring Widget */}
+          <PredictiveScoreCard
+            scoreData={predictiveScore}
+            loading={scoringLoading}
+            onRefresh={() => handleCalculatePredictiveScore(content)}
+            onOpenAutoRewrite={() => setRewriteModalOpen(true)}
+          />
 
           {/* Multimodal Graphics & Image Governance (Improvements 1, 2, 3) */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
@@ -708,6 +772,17 @@ For detailed security whitepapers and verification reports, explore the Acme Tru
             </button>
           </div>
         </form>
+
+        {/* AI Auto-Rewrite Assistant Modal */}
+        <AutoRewriteModal
+          isOpen={rewriteModalOpen}
+          onClose={() => setRewriteModalOpen(false)}
+          initialText={content}
+          onApply={(rewritten) => {
+            setContent(rewritten);
+            handleCalculatePredictiveScore(rewritten);
+          }}
+        />
       </div>
     </AppShell>
   );

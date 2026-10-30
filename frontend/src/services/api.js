@@ -373,6 +373,17 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+  getPredictiveScore: (data) =>
+    request("/checks/predictive-score", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  autoRewriteContent: (data) =>
+    request("/ai/auto-rewrite", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
 
   // Insights
   getInsightsSummary: () => request("/insights/summary"),

@@ -11,8 +11,11 @@ from app.schemas.checks import (
     ReadabilityCheckRequest,
     ReadabilityCheckResponse,
     MultimodalCheckRequest,
-    MultimodalCheckResponse
+    MultimodalCheckResponse,
+    PredictiveScoreRequest,
+    PredictiveScoreResponse
 )
+from app.services.predictive_scoring import calculate_predictive_compliance_score
 from app.checks.contrast import evaluate_contrast_ratio
 from app.checks.readability import calculate_readability
 from app.checks.visual import (
@@ -41,6 +44,31 @@ def check_contrast(req: ContrastCheckRequest):
 def check_readability(req: ReadabilityCheckRequest):
     result = calculate_readability(req.text, req.target_ease or 60.0)
     return ReadabilityCheckResponse(**result)
+
+@router.post("/predictive-score", response_model=PredictiveScoreResponse)
+def get_predictive_compliance_score(
+    req: PredictiveScoreRequest,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_user)
+):
+    ws_id = None
+    if current_user and isinstance(current_user, User) and current_user.workspace_id:
+        ws_id = current_user.workspace_id
+    else:
+        first_ws = db.query(Workspace).first()
+        if first_ws:
+            ws_id = first_ws.id
+
+    result = calculate_predictive_compliance_score(
+        text=req.text,
+        db=db,
+        workspace_id=ws_id,
+        target_ease=req.target_ease,
+        color_pairs=req.color_pairs,
+        images=req.images
+    )
+    return PredictiveScoreResponse(**result)
+
 
 @router.post("/multimodal", response_model=MultimodalCheckResponse)
 def check_multimodal(

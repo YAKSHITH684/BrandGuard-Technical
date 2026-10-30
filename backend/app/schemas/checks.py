@@ -56,3 +56,34 @@ class MultimodalCheckResponse(BaseModel):
     visual_compliance_score: float = 100.0
     summary: Dict[str, Any] = {}
 
+class PredictiveScoreRequest(BaseModel):
+    text: str
+    target_ease: Optional[float] = 60.0
+    color_pairs: Optional[List[Dict[str, Any]]] = None
+    images: Optional[List[Dict[str, Any]]] = None
+
+class DimensionScore(BaseModel):
+    category: str
+    label: str
+    score: float
+    status: str
+    weight: float
+    findings_count: int
+    summary: str
+
+class PredictiveScoreResponse(BaseModel):
+    overall_score: float
+    grade: str
+    risk_level: str
+    approval_probability: float
+    estimated_turnaround_minutes: float
+    gate_forecast: str
+    required_reviewers: List[str]
+    dimensions: List[DimensionScore]
+    top_positives: List[str]
+    top_risks: List[str]
+    actionable_recommendations: List[str]
+    readability_metrics: Dict[str, Any]
+    detected_violations_count: int
+
+

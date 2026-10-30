@@ -5,6 +5,8 @@ import DraftViewer from "../../components/DraftViewer/DraftViewer";
 import FindingCard from "../../components/FindingCard/FindingCard";
 import VersionDiff from "../../components/VersionDiff/VersionDiff";
 import VoiceDictation from "../../components/VoiceDictation/VoiceDictation";
+import PredictiveScoreCard from "../../components/PredictiveScoreCard/PredictiveScoreCard";
+import AutoRewriteModal from "../../components/AutoRewriteModal/AutoRewriteModal";
 import { api } from "../../services/api";
 import { useAuth } from "../../store/auth";
 import {
@@ -52,6 +54,29 @@ export default function DraftDetailPage() {
   // Audio findings walkthrough state
   const [isReadingAll, setIsReadingAll] = useState(false);
 
+  // Predictive Compliance Scoring & Auto-Rewrite states
+  const [predictiveScore, setPredictiveScore] = useState(null);
+  const [scoringLoading, setScoringLoading] = useState(false);
+  const [rewriteModalOpen, setRewriteModalOpen] = useState(false);
+
+  const fetchPredictiveScore = async (verData = null) => {
+    const targetData = verData || draft?.current_version_data;
+    if (!targetData?.content) return;
+    setScoringLoading(true);
+    try {
+      const res = await api.getPredictiveScore({
+        text: targetData.content,
+        target_ease: 60.0,
+        images: targetData.images_data || [],
+      });
+      setPredictiveScore(res);
+    } catch (err) {
+      console.warn("Predictive score fetch error:", err);
+    } finally {
+      setScoringLoading(false);
+    }
+  };
+
   useEffect(() => {
     return () => {
       stopSpeech();
@@ -65,6 +90,7 @@ export default function DraftDetailPage() {
       setDraft(data);
       if (data.current_version_data) {
         setRevisionContent(data.current_version_data.content);
+        fetchPredictiveScore(data.current_version_data);
       }
     } catch (err) {
       console.error(err);
@@ -277,6 +303,12 @@ export default function DraftDetailPage() {
                 >
                   {draft.status.replace("_", " ")}
                 </span>
+                {predictiveScore && (
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1.5 shadow-xs">
+                    <Sparkles className="w-3 h-3 text-indigo-500" />
+                    Score: {predictiveScore.overall_score.toFixed(0)}% ({predictiveScore.grade}) · {Math.round(predictiveScore.approval_probability * 100)}% Pass Chance
+                  </span>
+                )}
                 <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
                   Version {draft.current_version}
                 </span>
@@ -510,7 +542,16 @@ export default function DraftDetailPage() {
                   <div className="text-xs text-slate-500">
                     Accepted rewrites automatically populate below. Tweak text and resubmit to trigger version {draft.current_version + 1}.
                   </div>
-                  <VoiceDictation
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setRewriteModalOpen(true)}
+                      className="px-3 py-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/60 dark:to-purple-950/60 hover:from-indigo-100 hover:to-purple-100 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-all"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                      AI Auto-Rewrite
+                    </button>
+                    <VoiceDictation
                     onTranscript={(newSpeech) => {
                       setRevisionContent((prev) => (prev ? `${prev} ${newSpeech}` : newSpeech));
                     }}
@@ -522,6 +563,7 @@ export default function DraftDetailPage() {
                     }
                   />
                 </div>
+                  </div>
                 <textarea
                   rows={14}
                   value={revisionContent}
@@ -590,6 +632,14 @@ export default function DraftDetailPage() {
 
           {/* Right Pane: Explainable Finding Cards (5 cols) */}
           <div className="lg:col-span-5 space-y-3">
+            {/* Predictive Compliance Scoring Widget */}
+            <PredictiveScoreCard
+              scoreData={predictiveScore}
+              loading={scoringLoading}
+              onRefresh={() => fetchPredictiveScore()}
+              onOpenAutoRewrite={() => setRewriteModalOpen(true)}
+              compact={false}
+            />
             <div className="flex items-center justify-between text-xs font-bold text-slate-700">
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
@@ -657,6 +707,16 @@ export default function DraftDetailPage() {
           </div>
         </div>
       </div>
+        {/* AI Auto-Rewrite Assistant Modal */}
+        <AutoRewriteModal
+          isOpen={rewriteModalOpen}
+          onClose={() => setRewriteModalOpen(false)}
+          initialText={activeTab === "revise" ? revisionContent : (draft?.current_version_data?.content || "")}
+          onApply={(rewritten) => {
+            setRevisionContent(rewritten);
+            setActiveTab("revise");
+          }}
+        />
     </AppShell>
   );
 }

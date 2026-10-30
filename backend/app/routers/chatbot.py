@@ -7,7 +7,8 @@ from app.database import get_db
 from app.models.user import User
 from app.models.workspace import Workspace
 from app.models.source import GlossaryTerm
-from app.schemas.ai import ChatRequest, ChatResponse, CitedSource
+from app.schemas.ai import ChatRequest, ChatResponse, CitedSource, AutoRewriteRequest, AutoRewriteResponse
+from app.services.auto_rewrite import generate_auto_rewrite
 from app.routers.auth import get_optional_user
 from app.ai.retrieval import retrieve_relevant_chunks
 from app.ai.llm_client import get_best_groq_model
@@ -224,3 +225,49 @@ def generate_offline_governance_reply(msg: str, terms: List[GlossaryTerm], chunk
         "I am the **BrandGuard Copilot**. Ask me anything about your brand voice, claims policy, approved SLA numbers, or banned terminology!\n\n"
         "*(To enable generative completions, add your free key to `GROQ_API_KEY` in Settings)*"
     )
+
+@router.post("/auto-rewrite", response_model=AutoRewriteResponse)
+def auto_rewrite_copy(
+    req: AutoRewriteRequest,
+    current_user: Optional[User] = Depends(get_optional_user),
+    db: Session = Depends(get_db)
+):
+    ws_id = None
+    actor_id = "guest_user"
+    if current_user and isinstance(current_user, User):
+        ws_id = current_user.workspace_id
+        actor_id = current_user.id
+    else:
+        first_ws = db.query(Workspace).first()
+        if first_ws:
+            ws_id = first_ws.id
+
+    result = generate_auto_rewrite(
+        text=req.text,
+        preset=req.preset or "balanced",
+        custom_instruction=req.custom_instruction,
+        db=db,
+        workspace_id=ws_id,
+        target_ease=req.target_ease or 60.0
+    )
+
+    if current_user and ws_id:
+        try:
+            log_audit_event(
+                db=db,
+                workspace_id=ws_id,
+                actor_id=actor_id,
+                event_type="ai_auto_rewrite",
+                entity_type="draft_copy",
+                entity_id=req.target_finding_id or "snippet",
+                metadata={
+                    "preset": req.preset,
+                    "model_used": result.get("model_used"),
+                    "score_boost": result.get("score_boost")
+                }
+            )
+        except Exception:
+            pass
+
+    return AutoRewriteResponse(**result)
+
